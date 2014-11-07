@@ -405,7 +405,7 @@ class SSHCommand(Command):
                                     log_stdout)
             self._start_pipe_thread(self._stderr_lines, stderr, 'err', True)
 
-    def _end_process(self, raiseonerr=True):
+    def _end_process(self):
         self._ssh.shutdown_write()
 
         while self.running_threads:
@@ -423,7 +423,7 @@ class SSHCommand(Command):
 
         The thread is added to ``self.running_threads``.
         """
-        log = log_mgr.get_logger('%s.%s' % (self.logger_name, name))
+        log = logging.getLogger('%s.%s' % (self.logger_name, name))
 
         def read_stream():
             for line in stream:

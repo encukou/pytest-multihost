@@ -20,10 +20,7 @@
 
 """Utilities for configuration of multi-master tests"""
 
-import os
 import collections
-import random
-import json
 import logging
 
 from pytest_multihost.util import check_config_dict_empty
@@ -47,6 +44,10 @@ _setting_infos = (
 
 
 class Config(object):
+    """Container for global configuration and a list of Domains
+
+    See README for an overview of the core classes.
+    """
     def __init__(self, **kwargs):
         self.log = logging.getLogger('%s.%s' % (__name__, type(self).__name__))
 
@@ -65,6 +66,10 @@ class Config(object):
 
     @classmethod
     def from_dict(cls, dct):
+        """Load a Config object from a dict
+
+        The dict is usually loaded from an user-supplied YAML or JSON file.
+        """
         kwargs = {s.name: dct.pop(s.name, s.default) for s in _setting_infos}
         self = cls(**kwargs)
 
@@ -76,6 +81,7 @@ class Config(object):
         return self
 
     def to_dict(self):
+        """Save this Config object to a dict compatible with from_dict"""
         dct = {'domains': [d.to_dict() for d in self.domains]}
         for setting in _setting_infos:
             value = getattr(self, setting.name)
@@ -83,6 +89,13 @@ class Config(object):
         return dct
 
     def host_by_name(self, name):
+        """Get a host from any domain by name
+
+        If multiple hosts have the same name, return the first one.
+        Raise LookupError if no host is found.
+
+        See Domain.host_by_name for details on matching.
+        """
         for domain in self.domains:
             try:
                 return domain.host_by_name(name)
@@ -133,7 +146,10 @@ class Config(object):
 
 
 class Domain(object):
-    """Configuration for a domain"""
+    """Configuration for a domain
+
+    See README for an overview of the core classes.
+    """
     def __init__(self, config, name, domain_type):
         self.log = logging.getLogger('%s.%s' % (__name__, type(self).__name__))
         self.type = str(domain_type)
@@ -144,11 +160,12 @@ class Domain(object):
 
     @property
     def roles(self):
+        """All the roles of the hosts in this domain"""
         return sorted(set(host.role for host in self.hosts))
 
     @property
     def static_roles(self):
-        """Specific roles for this domain type
+        """Roles typical for this domain type
 
         To be overridden in subclasses
         """
@@ -156,10 +173,14 @@ class Domain(object):
 
     @property
     def extra_roles(self):
+        """Roles of this Domain's hosts that aren't included in static_roles
+        """
         return [role for role in self.roles if role not in self.static_roles]
 
     @classmethod
     def from_dict(cls, dct, config):
+        """Load this Domain from a dict
+        """
         from pytest_multihost.host import BaseHost
 
         domain_type = dct.pop('type', 'default')
@@ -175,6 +196,8 @@ class Domain(object):
         return self
 
     def to_dict(self):
+        """Export this Domain from a dict
+        """
         return {
             'type': self.type,
             'name': self.name,
@@ -182,26 +205,35 @@ class Domain(object):
         }
 
     def host_by_role(self, role):
-        if self.hosts_by_role(role):
-            return self.hosts_by_role(role)[0]
+        """Return the first host of the given role"""
+        hosts = self.hosts_by_role(role)
+        if hosts:
+            return hosts[0]
         else:
             raise LookupError(role)
 
     def hosts_by_role(self, role):
+        """Return all hosts of the given role"""
         return [h for h in self.hosts if h.role == role]
 
-    @property
-    def other_hosts(self):
-        return self.hosts_by_role('other')
-
     def host_by_name(self, name):
+        """Return a host with the given name
+
+        Checks all of: hostname, external_hostname, shortname.
+
+        If more hosts match, returns the first one.
+        Raises LookupError if no host is found.
+        """
         for host in self.hosts:
             if name in (host.hostname, host.external_hostname, host.shortname):
                 return host
         raise LookupError(name)
 
     def fits(self, description):
-        """Return True if the this fits the description"""
+        """Return True if the this fits the description
+
+        See Domain.filter for discussion of the description.
+        """
         if self.type != description.get('type', 'default'):
             return False
         for role, number in description['hosts'].items():

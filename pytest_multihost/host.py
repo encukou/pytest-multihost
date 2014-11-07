@@ -29,7 +29,10 @@ from pytest_multihost.util import check_config_dict_empty, shell_quote
 
 
 class BaseHost(object):
-    """Representation of a remote host"""
+    """Representation of a remote host
+
+    See README for an overview of the core classes.
+    """
     transport_class = None
 
     def __init__(self, domain, hostname, role, ip=None,
@@ -112,6 +115,7 @@ class BaseHost(object):
 
     @classmethod
     def from_dict(cls, dct, domain):
+        """Load this Host from a dict"""
         if isinstance(dct, basestring):
             dct = {'name': dct}
         try:
@@ -131,6 +135,7 @@ class BaseHost(object):
         return cls._make_host(domain, hostname, role, ip, external_hostname)
 
     def to_dict(self):
+        """Export info about this Host to a dict"""
         return {
             'name': str(self.hostname),
             'ip': self.ip,
@@ -140,10 +145,16 @@ class BaseHost(object):
 
     @property
     def config(self):
+        """The Config that this Host is a part of"""
         return self.domain.config
 
     @property
     def transport(self):
+        """Provides means to manipulate files & run processs on the remote host
+
+        Accessing this property might connect to the remote Host
+        (usually via SSH).
+        """
         try:
             return self._transport
         except AttributeError:
@@ -166,6 +177,7 @@ class BaseHost(object):
         self.transport.put_file_contents(filename, contents)
 
     def collect_log(self, filename):
+        """Call all registered log collectors on the given filename"""
         for collector in self.log_collectors:
             collector(self, filename)
 
@@ -174,7 +186,7 @@ class BaseHost(object):
                     cwd=None):
         """Run the given command on this host
 
-        Returns a Shell instance. The command will have already run in the
+        Returns a Command instance. The command will have already run in the
         shell when this method returns, so its stdout_text, stderr_text, and
         returncode attributes will be available.
 
@@ -236,8 +248,7 @@ class WinHost(BaseHost):
     """
     Representation of a remote Windows host.
 
-    This serves as a sketch class once we move from manual preparation of
-    Active Directory to the automated setup.
+    This is a stub; Windows hosts can't currently be interacted with.
     """
 
     pass

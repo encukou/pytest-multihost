@@ -26,10 +26,12 @@ def check_config_dict_empty(dct, name):
 
 
 def shell_quote(string):
+    """Quotes a string for the Bash shell"""
     return "'" + string.replace("'", "'\\''") + "'"
 
 
 class TempDir(object):
+    """Handle for a temporary directory that's deleted on garbage collection"""
     def __init__(self):
         self.path = tempfile.mkdtemp(prefix='multihost_tests.')
 

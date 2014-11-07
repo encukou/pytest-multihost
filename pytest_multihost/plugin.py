@@ -1,4 +1,5 @@
 import json
+import os
 import traceback
 
 import pytest
@@ -41,22 +42,40 @@ def pytest_load_initial_conftests(args, early_config, parser):
 
 
 class MultihostPlugin(object):
+    """The Multihost plugin
+
+    The plugin is available as pluginmanager.getplugin('MultihostPlugin'),
+    and its presence indicates that multihost testing has been configured.
+    """
     def __init__(self, confdict):
         self.confdict = confdict
 
 
 class MultihostFixture(object):
+    """A fixture containing the multihost testing configuration
+
+    Contains the `config`; other attributes may be added to it for convenience.
+    """
     def __init__(self, config):
         self.config = config
 
 
-def make_fixture(request, domains, config_class=Config):
+def make_fixture(request, descriptions, config_class=Config):
+    """Create a MultihostFixture, or skip the test
+
+    :param request: The Pytest request object
+    :param descriptions:
+        Descriptions of wanted domains (see README or Domain.filter)
+    :param config_class: Custom Config class to use
+
+    Skips the test if there are not enough resources configured.
+    """
     plugin = request.config.pluginmanager.getplugin('MultihostPlugin')
     if not plugin:
         pytest.skip('Multihost tests not configured')
     config = config_class.from_dict(plugin.confdict)
     try:
-        config.filter(domains)
+        config.filter(descriptions)
     except FilterError as e:
         pytest.skip('Not enough resources configured: %s' % e)
     return MultihostFixture(config)
