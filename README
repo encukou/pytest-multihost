@@ -80,7 +80,7 @@ a function argument.
 Unlike regular pytest fixtures, it needs to be used on a class: its
 install() method calls the class' install(), and at cleanup time, uninstall()
 is called.
-For a simplified example FreeIPA usage could look something like this:
+For a simplified example, FreeIPA usage could look something like this:
 
     class TestMultihost(object):
         def install(self, multihost):
@@ -127,3 +127,6 @@ which is named on the py.test command line. For example:
             role: master
 
 $ py.test --multihost-config=/path/to/configfile.yaml
+
+To use YAML files, the PyYAML package is required. Without it only JSON files
+can be used.
