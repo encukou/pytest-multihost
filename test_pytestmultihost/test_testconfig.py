@@ -79,7 +79,7 @@ class TestMinimalConfig(CheckConfig):
     extra_output_dict = dict(
         domains=[
             dict(
-                type='DEFAULT',
+                type='default',
                 name="adomain.test",
                 hosts=[
                     dict(
@@ -96,7 +96,7 @@ class TestMinimalConfig(CheckConfig):
     def check_config(self, conf):
         assert len(conf.domains) == 1
         assert conf.domains[0].name == 'adomain.test'
-        assert conf.domains[0].type == 'DEFAULT'
+        assert conf.domains[0].type == 'default'
         assert len(conf.domains[0].hosts) == 1
 
         master = conf.domains[0].host_by_role('master')
@@ -134,7 +134,7 @@ class TestComplexConfig(CheckConfig):
     extra_output_dict = dict(
         domains=[
             dict(
-                type='DEFAULT',
+                type='default',
                 name="adomain.test",
                 hosts=[
                     dict(
@@ -200,7 +200,7 @@ class TestComplexConfig(CheckConfig):
                 ],
             ),
             dict(
-                type='DEFAULT',
+                type='default',
                 name="adomain2.test",
                 hosts=[
                     dict(
@@ -220,7 +220,7 @@ class TestComplexConfig(CheckConfig):
         (client1, client2, extra, extram1, extram2, master,
          replica1, replica2) = sorted(main_dom.hosts, key=lambda h: h.role)
         assert main_dom.name == 'adomain.test'
-        assert main_dom.type == 'DEFAULT'
+        assert main_dom.type == 'default'
 
         assert sorted(main_dom.static_roles) == ['master']
         assert sorted(main_dom.roles) == [
@@ -234,7 +234,7 @@ class TestComplexConfig(CheckConfig):
 
         assert extra.ip == '192.0.2.6'
         assert extram2.hostname == 'extram2.adomain.test'
-        #assert extram2.external_hostname == 'e2.adomain.test'
+        assert extram2.external_hostname == 'e2.adomain.test'
 
         ad_dom = conf.domains[1]
         assert ad_dom.roles == ['srv']

@@ -29,6 +29,10 @@ import logging
 from pytest_multihost.util import check_config_dict_empty
 
 
+class FilterError(ValueError):
+    """Raised when domains description could not be satisfied"""
+
+
 _SettingInfo = collections.namedtuple('Setting', 'name default')
 _setting_infos = (
     # Directory on which test-specific files will be stored,
@@ -86,6 +90,47 @@ class Config(object):
                 pass
         raise LookupError(name)
 
+    def filter(self, descriptions):
+        """Destructively filters hosts and orders domains to fit description
+
+        :param descriptions:
+            List of dicts such as:
+
+                [
+                    {
+                        'type': 'ipa',
+                        'hosts': {
+                            'master': 1,
+                            'replica': 2,
+                        },
+                    },
+                ]
+
+            i.e. the "type" is a type of domain, and "hosts" a dict mapping
+            host roles to the number of hosts of this role that are required.
+
+        """
+        unique_domain_types = set(d['type'] for d in descriptions)
+        if len(descriptions) != len(unique_domain_types):
+            # TODO: The greedy algorithm used to match domains may not yield
+            # the correct result if there are several domains of the same type.
+            raise ValueError('Duplicate domain type not supported')
+
+        new_domains = []
+
+        for i, description in enumerate(descriptions):
+            for domain in list(self.domains):
+                if domain.fits(description):
+                    domain.filter(description['hosts'])
+                    new_domains.append(domain)
+                    self.domains.remove(domain)
+                    break
+            else:
+                raise FilterError(
+                    'Domain %s not configured: %s' % (i, description))
+
+        self.domains = new_domains
+
 
 class Domain(object):
     """Configuration for a domain"""
@@ -117,7 +162,7 @@ class Domain(object):
     def from_dict(cls, dct, config):
         from pytest_multihost.host import BaseHost
 
-        domain_type = dct.pop('type', 'DEFAULT')
+        domain_type = dct.pop('type', 'default')
         domain_name = dct.pop('name')
         self = cls(config, domain_name, domain_type)
 
@@ -154,3 +199,31 @@ class Domain(object):
             if name in (host.hostname, host.external_hostname, host.shortname):
                 return host
         raise LookupError(name)
+
+    def fits(self, description):
+        """Return True if the this fits the description"""
+        if self.type != description.get('type', 'default'):
+            return False
+        for role, number in description['hosts'].items():
+            if len(self.hosts_by_role(role)) < number:
+                return False
+        return True
+
+    def filter(self, host_counts):
+        """Destructively filter hosts in this domain
+
+        :param host_counts:
+            Mapping of host role to number of hosts wanted for that role
+
+        All extra hosts are removed from this Domain.
+        """
+        new_hosts = []
+        for host in list(self.hosts):
+            if host_counts.get(host.role, 0) > 0:
+                new_hosts.append(host)
+                host_counts[host.role] -= 1
+        if any(h > 0 for h in host_counts.values()):
+            raise ValueError(
+                'Domain does not fit host counts, extra hosts needed: %s' %
+                host_counts)
+        self.hosts = new_hosts
