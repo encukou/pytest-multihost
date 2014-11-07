@@ -24,8 +24,10 @@ from pytest_multihost import config
 
 DEFAULT_OUTPUT_DICT = {
     "test_dir": "/root/multihost_tests",
-    "root_ssh_key_filename": "~/.ssh/id_rsa",
-    "root_password": None,
+    "ssh_key_filename": "~/.ssh/id_rsa",
+    "ssh_password": None,
+    'ssh_username': 'root',
+    'ipv6': False,
     "domains": [],
 }
 

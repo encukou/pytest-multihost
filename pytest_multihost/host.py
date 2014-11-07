@@ -74,8 +74,9 @@ class BaseHost(object):
                 raise RuntimeError('Could not determine IP address of %s' %
                                    self.external_hostname)
 
-        self.root_password = self.config.root_password
-        self.root_ssh_key_filename = self.config.root_ssh_key_filename
+        self.ssh_password = self.config.ssh_password
+        self.ssh_key_filename = self.config.ssh_key_filename
+        self.ssh_username = self.config.ssh_username
         self.host_key = None
         self.ssh_port = 22
 

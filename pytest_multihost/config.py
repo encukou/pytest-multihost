@@ -36,10 +36,15 @@ _setting_infos = (
     _SettingInfo('test_dir', '/root/multihost_tests'),
 
     # File with root's private RSA key for SSH (default: ~/.ssh/id_rsa)
-    _SettingInfo('root_ssh_key_filename', None),
+    _SettingInfo('ssh_key_filename', None),
 
-    # SSH password for root (used if root_ssh_key_filename is not set)
-    _SettingInfo('root_password', None),
+    # SSH password (used if ssh_key_filename is not set)
+    _SettingInfo('ssh_password', None),
+
+    # username to log in as
+    _SettingInfo('ssh_username', 'root'),
+
+    _SettingInfo('ipv6', False),
 )
 
 
@@ -56,11 +61,13 @@ class Config(object):
         # This unfortunately duplicates information in _setting_infos,
         # but is left here for the sake of static analysis.
         self.test_dir = kwargs.get('test_dir', '/root/multihost_tests')
-        self.root_ssh_key_filename = kwargs.get('root_ssh_key_filename')
-        self.root_password = kwargs.get('root_password')
+        self.ssh_key_filename = kwargs.get('ssh_key_filename')
+        self.ssh_password = kwargs.get('ssh_password')
+        self.ssh_username = kwargs.get('ssh_username')
+        self.ipv6 = bool(kwargs.get('ipv6', False))
 
-        if not self.root_password and not self.root_ssh_key_filename:
-            self.root_ssh_key_filename = '~/.ssh/id_rsa'
+        if not self.ssh_password and not self.ssh_key_filename:
+            self.ssh_key_filename = '~/.ssh/id_rsa'
 
         self.domains = []
 
@@ -123,7 +130,8 @@ class Config(object):
             host roles to the number of hosts of this role that are required.
 
         """
-        unique_domain_types = set(d['type'] for d in descriptions)
+        unique_domain_types = set(d.get('type', 'default')
+                                  for d in descriptions)
         if len(descriptions) != len(unique_domain_types):
             # TODO: The greedy algorithm used to match domains may not yield
             # the correct result if there are several domains of the same type.

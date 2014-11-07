@@ -51,7 +51,7 @@ class Transport(object):
     def __init__(self, host):
         self.host = host
         self.logger_name = '%s.%s' % (host.logger_name, type(self).__name__)
-        self.log = log_mgr.get_logger(self.logger_name)
+        self.log = logging.getLogger(self.logger_name)
         self._command_index = 0
 
     def get_file_contents(self, filename):
@@ -134,7 +134,7 @@ class Command(object):
             self.logger_name = logger_name
         else:
             self.logger_name = '%s.%s' % (self.__module__, type(self).__name__)
-        self.log = log_mgr.get_logger(self.logger_name)
+        self.log = logging.getLogger(self.logger_name)
 
     def wait(self, raiseonerr=True):
         """Wait for the remote process to exit
@@ -172,15 +172,15 @@ class ParamikoTransport(Transport):
                                          host.ssh_port))
         self._transport = transport = paramiko.Transport(sock)
         transport.connect(hostkey=host.host_key)
-        if host.root_ssh_key_filename:
+        if host.ssh_key_filename:
             self.log.debug('Authenticating with private RSA key')
-            filename = os.path.expanduser(host.root_ssh_key_filename)
+            filename = os.path.expanduser(host.ssh_key_filename)
             key = paramiko.RSAKey.from_private_key_file(filename)
-            transport.auth_publickey(username='root', key=key)
-        elif host.root_password:
+            transport.auth_publickey(username=host.ssh_username, key=key)
+        elif host.ssh_password:
             self.log.debug('Authenticating with password')
             transport.auth_password(username='root',
-                                    password=host.root_password)
+                                    password=host.ssh_password)
         else:
             self.log.critical('No SSH credentials configured')
             raise RuntimeError('No SSH credentials configured')
@@ -278,15 +278,15 @@ class OpenSSHTransport(Transport):
         known_hosts_file = os.path.join(self.control_dir.path, 'known_hosts')
 
         argv = ['ssh',
-                '-l', 'root',
+                '-l', self.host.ssh_username,
                 '-o', 'ControlPath=%s' % control_file,
                 '-o', 'StrictHostKeyChecking=no',
                 '-o', 'UserKnownHostsFile=%s' % known_hosts_file]
 
-        if self.host.root_ssh_key_filename:
-            key_filename = os.path.expanduser(self.host.root_ssh_key_filename)
+        if self.host.ssh_key_filename:
+            key_filename = os.path.expanduser(self.host.ssh_key_filename)
             argv.extend(['-i', key_filename])
-        elif self.host.root_password:
+        elif self.host.ssh_password:
             self.log.critical('Password authentication not supported')
             raise RuntimeError('Password authentication not supported')
         else:

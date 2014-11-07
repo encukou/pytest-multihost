@@ -56,26 +56,41 @@ class MultihostFixture(object):
 
     Contains the `config`; other attributes may be added to it for convenience.
     """
-    def __init__(self, config):
+    def __init__(self, config, request):
         self.config = config
+        self._pytestmh_request = request
+
+    def install(self):
+        request = self._pytestmh_request
+        cls = request.cls
+        install = getattr(cls, 'install', None)
+        if install:
+            request.addfinalizer(lambda: cls().uninstall(self))
+            cls().install(self)
+        return self
 
 
-def make_fixture(request, descriptions, config_class=Config):
+def make_fixture(request, descriptions, config_class=Config, _confdict=None):
     """Create a MultihostFixture, or skip the test
 
     :param request: The Pytest request object
     :param descriptions:
         Descriptions of wanted domains (see README or Domain.filter)
     :param config_class: Custom Config class to use
+    :param _confdict:
+        Config dict to be used manually.
+        Intended for testing the plugin itself.
 
     Skips the test if there are not enough resources configured.
     """
-    plugin = request.config.pluginmanager.getplugin('MultihostPlugin')
-    if not plugin:
-        pytest.skip('Multihost tests not configured')
-    config = config_class.from_dict(plugin.confdict)
+    if _confdict is None:
+        plugin = request.config.pluginmanager.getplugin('MultihostPlugin')
+        if not plugin:
+            pytest.skip('Multihost tests not configured')
+        _confdict = plugin.confdict
+    config = config_class.from_dict(_confdict)
     try:
         config.filter(descriptions)
     except FilterError as e:
         pytest.skip('Not enough resources configured: %s' % e)
-    return MultihostFixture(config)
+    return MultihostFixture(config, request)

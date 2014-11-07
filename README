@@ -11,6 +11,7 @@ The object provided to tests is a Config object, which has (among others)
 these attributes:
     test_dir – directory to store test-specific data in,
                defaults to /root/multihost_tests
+    ipv6 – true if connecting via IPv6
 
     domains – the list of domains
 
@@ -43,11 +44,11 @@ attributes – for example, Config.ntp_server.
 To use the multihost plugin in tests, create a fixture listing the domains
 and what number of which host role is needed:
 
-    @pytest.fixture
+    @pytest.fixture(scope='class')
     def multihost(request):
         mh = pytest_multihost.make_fixture(
             request,
-            domains=[
+            descriptions=[
                 {
                     'type': 'ipa',
                     'hosts': {
@@ -61,7 +62,8 @@ and what number of which host role is needed:
 
 If not enough hosts are available, all tests that use the fixture are skipped.
 
-The object returned from `make_fixture` only has the "config" attribute.
+The object returned from `make_fixture` only has the "config" attribute
+(and the install method).
 Users are expected to add convenience attributes.
 For example, FreeIPA, which typically uses a single domain with one master,
 several replicas and some clients, would do:
@@ -100,7 +102,7 @@ The description of infrastructure is provided in a JSON or YAML file,
 which is named on the py.test command line. For example:
 
 
-    root_ssh_key_filename: ~/.ssh/id_rsa
+    ssh_key_filename: ~/.ssh/id_rsa
     domains:
       - name: adomain.test
         hosts:
