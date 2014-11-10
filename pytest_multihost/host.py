@@ -27,6 +27,11 @@ import logging
 from pytest_multihost import transport
 from pytest_multihost.util import check_config_dict_empty, shell_quote
 
+try:
+    basestring
+except NameError:
+    basestring = str
+
 
 class BaseHost(object):
     """Representation of a remote host

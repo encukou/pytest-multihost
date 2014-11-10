@@ -31,6 +31,8 @@ import subprocess
 from contextlib import contextmanager
 import errno
 import logging
+import io
+import sys
 
 from pytest_multihost import util
 
@@ -226,7 +228,7 @@ class ParamikoTransport(Transport):
         self.log.debug('STAT %s', filename)
         try:
             self.sftp.stat(filename)
-        except IOError, e:
+        except IOError as e:
             if e.errno == errno.ENOENT:
                 return False
             else:
@@ -384,7 +386,7 @@ class SSHCallWrapper(object):
 class SSHCommand(Command):
     """Command implementation for ParamikoTransport and OpenSSHTranspport"""
     def __init__(self, ssh, argv, logger_name, log_stdout=True,
-                 collect_output=True):
+                 collect_output=True, encoding='utf-8'):
         super(SSHCommand, self).__init__(argv, logger_name,
                                          log_stdout=log_stdout)
         self._stdout_lines = []
@@ -396,9 +398,14 @@ class SSHCommand(Command):
         self.log.debug('RUN %s', argv)
 
         self._ssh.invoke_shell()
-        stdin = self.stdin = self._ssh.makefile('wb')
-        stdout = self._ssh.makefile('rb')
-        stderr = self._ssh.makefile_stderr('rb')
+        def wrap_file(file, encoding):
+            if encoding is None or sys.version_info < (3, 0):
+                return file
+            else:
+                return io.TextIOWrapper(file, encoding=encoding)
+        stdin = self.stdin = wrap_file(self._ssh.makefile('wb'), 'utf-8')
+        stdout = wrap_file(self._ssh.makefile('rb'), encoding)
+        stderr = wrap_file(self._ssh.makefile_stderr('rb'), encoding)
 
         if collect_output:
             self._start_pipe_thread(self._stdout_lines, stdout, 'out',
