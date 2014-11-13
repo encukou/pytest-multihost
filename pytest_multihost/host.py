@@ -106,19 +106,6 @@ class BaseHost(object):
         """Unregister a log collector"""
         self.log_collectors.remove(collector)
 
-    @staticmethod
-    def _make_host(domain, hostname, role, ip, external_hostname):
-        # We need to determine the type of the host, this depends on the domain
-        # type, as we assume all Unix machines are in the Unix domain and
-        # all Windows machine in a AD domain
-
-        if domain.type == 'AD':
-            cls = WinHost
-        else:
-            cls = Host
-
-        return cls(domain, hostname, role, ip, external_hostname)
-
     @classmethod
     def from_dict(cls, dct, domain):
         """Load this Host from a dict"""
@@ -138,7 +125,7 @@ class BaseHost(object):
 
         check_config_dict_empty(dct, 'host %s' % hostname)
 
-        return cls._make_host(domain, hostname, role, ip, external_hostname)
+        return cls(domain, hostname, role, ip, external_hostname)
 
     def to_dict(self):
         """Export info about this Host to a dict"""

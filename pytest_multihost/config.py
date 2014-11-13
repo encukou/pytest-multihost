@@ -30,22 +30,14 @@ class FilterError(ValueError):
     """Raised when domains description could not be satisfied"""
 
 
-_SettingInfo = collections.namedtuple('Setting', 'name default')
-_setting_infos = (
-    # Directory on which test-specific files will be stored,
-    _SettingInfo('test_dir', '/root/multihost_tests'),
-
-    # File with root's private RSA key for SSH (default: ~/.ssh/id_rsa)
-    _SettingInfo('ssh_key_filename', None),
-
-    # SSH password (used if ssh_key_filename is not set)
-    _SettingInfo('ssh_password', None),
-
-    # username to log in as
-    _SettingInfo('ssh_username', 'root'),
-
-    _SettingInfo('ipv6', False),
-)
+init_args = {
+    'test_dir',
+    'ssh_key_filename',
+    'ssh_password',
+    'ssh_username',
+    'domains',
+    'ipv6',
+}
 
 
 class Config(object):
@@ -53,6 +45,8 @@ class Config(object):
 
     See README for an overview of the core classes.
     """
+    extra_init_args = ()
+
     def __init__(self, **kwargs):
         self.log = logging.getLogger('%s.%s' % (__name__, type(self).__name__))
 
@@ -63,36 +57,54 @@ class Config(object):
         self.test_dir = kwargs.get('test_dir', '/root/multihost_tests')
         self.ssh_key_filename = kwargs.get('ssh_key_filename')
         self.ssh_password = kwargs.get('ssh_password')
-        self.ssh_username = kwargs.get('ssh_username')
+        self.ssh_username = kwargs.get('ssh_username', 'root')
         self.ipv6 = bool(kwargs.get('ipv6', False))
 
         if not self.ssh_password and not self.ssh_key_filename:
             self.ssh_key_filename = '~/.ssh/id_rsa'
 
         self.domains = []
+        domain_class = self.get_domain_class()
+        for domain_dict in kwargs.pop('domains'):
+            self.domains.append(domain_class.from_dict(domain_dict, self))
+
+    def get_domain_class(self):
+        return Domain
 
     @classmethod
     def from_dict(cls, dct):
         """Load a Config object from a dict
 
         The dict is usually loaded from an user-supplied YAML or JSON file.
+
+        In the base implementation, the dict is just passed to the constructor.
+        If more arguments are needed, include them in the class'
+        extra_init_args set.
         """
-        kwargs = {s.name: dct.pop(s.name, s.default) for s in _setting_infos}
-        self = cls(**kwargs)
-
-        for domain_dict in dct.pop('domains'):
-            self.domains.append(Domain.from_dict(domain_dict, self))
-
-        check_config_dict_empty(dct, 'config')
+        all_init_args = set(init_args) | set(cls.extra_init_args)
+        extra_args = set(dct) - all_init_args
+        if extra_args:
+            ValueError('Extra keys in confuguration for config: %s' %
+                       ', '.join(extra_args))
+        self = cls(**dct)
 
         return self
 
-    def to_dict(self):
-        """Save this Config object to a dict compatible with from_dict"""
+    def to_dict(self, _autosave_names=()):
+        """Save this Config object to a dict compatible with from_dict
+
+        :param _autosave_names:
+            To be used by subclasses only.
+            Lists names that should be included in the dict.
+            Values are taken from attributes of the same name.
+            Usually this is a subset of the class' extra_init_args
+        """
         dct = {'domains': [d.to_dict() for d in self.domains]}
-        for setting in _setting_infos:
-            value = getattr(self, setting.name)
-            dct[setting.name] = value
+
+        autosave = (set(init_args) | set(_autosave_names)) - {'domains'}
+        for argname in autosave:
+            value = getattr(self, argname)
+            dct[argname] = value
         return dct
 
     def host_by_name(self, name):
@@ -166,6 +178,10 @@ class Domain(object):
         self.name = str(name)
         self.hosts = []
 
+    def get_host_class(self, host_dict):
+        from pytest_multihost.host import Host
+        return Host
+
     @property
     def roles(self):
         """All the roles of the hosts in this domain"""
@@ -189,14 +205,13 @@ class Domain(object):
     def from_dict(cls, dct, config):
         """Load this Domain from a dict
         """
-        from pytest_multihost.host import BaseHost
-
         domain_type = dct.pop('type', 'default')
         domain_name = dct.pop('name')
         self = cls(config, domain_name, domain_type)
 
         for host_dict in dct.pop('hosts'):
-            host = BaseHost.from_dict(host_dict, self)
+            host_class = self.get_host_class(host_dict)
+            host = host_class.from_dict(host_dict, self)
             self.hosts.append(host)
 
         check_config_dict_empty(dct, 'domain %s' % domain_name)
