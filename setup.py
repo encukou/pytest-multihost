@@ -20,7 +20,7 @@ from setuptools import setup
 
 setup_args = dict(
     name = "pytest-multihost",
-    version = "0.1",
+    version = "0.2",
     license = "GPL",
     author = "Petr Viktorin",
     author_email = "pviktori@redhat.com",

@@ -12,7 +12,7 @@
 
 %global srcname pytest-multihost
 %global modulename pytest_multihost
-%global srcversion 0.1
+%global srcversion 0.2
 %global versionedname %{srcname}-%{srcversion}
 
 Name: python-%{srcname}
@@ -114,5 +114,9 @@ popd
 
 
 %changelog
+* Mon Nov 10 2014 Petr Viktorin <encukou@gmail.com> - 0.2-1
+- better extensibility
+- bug fixes
+
 * Mon Nov 10 2014 Petr Viktorin <encukou@gmail.com> - 0.1-1
 - initial public version of package
