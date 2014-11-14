@@ -34,6 +34,11 @@ setup_args = dict(
         'Topic :: Software Development :: Quality Assurance',
     ],
     install_requires=['pytest'],  # (paramiko & PyYAML are suggested)
+    entry_points = {
+        'pytest11': [
+            'multihost = pytest_multihost.plugin',
+        ],
+    },
 )
 
 if __name__ == '__main__':
