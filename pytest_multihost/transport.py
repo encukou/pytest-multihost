@@ -53,7 +53,7 @@ class Transport(object):
     def __init__(self, host):
         self.host = host
         self.logger_name = '%s.%s' % (host.logger_name, type(self).__name__)
-        self.log = logging.getLogger(self.logger_name)
+        self.log = host.config.get_logger(self.logger_name)
         self._command_index = 0
 
     def get_file_contents(self, filename):
@@ -127,7 +127,8 @@ class Command(object):
     be strings containing the output, and ``returncode`` will contain the
     exit code.
     """
-    def __init__(self, argv, logger_name=None, log_stdout=True):
+    def __init__(self, argv, logger_name=None, log_stdout=True,
+                 get_logger=None):
         self.returncode = None
         self.argv = argv
         self._done = False
@@ -136,7 +137,10 @@ class Command(object):
             self.logger_name = logger_name
         else:
             self.logger_name = '%s.%s' % (self.__module__, type(self).__name__)
-        self.log = logging.getLogger(self.logger_name)
+        if get_logger is None:
+            get_logger = logging.getLogger
+        self.get_logger = get_logger
+        self.log = get_logger(self.logger_name)
 
     def wait(self, raiseonerr=True):
         """Wait for the remote process to exit
@@ -244,7 +248,8 @@ class ParamikoTransport(Transport):
         ssh = self._transport.open_channel('session')
         self.log.info('RUN %s', argv)
         return SSHCommand(ssh, argv, logger_name=logger_name,
-                          log_stdout=log_stdout)
+                          log_stdout=log_stdout,
+                          get_logger=self.host.config.get_logger)
 
     def get_file(self, remotepath, localpath):
         self.log.debug('GET %s', remotepath)
@@ -318,7 +323,8 @@ class OpenSSHTransport(Transport):
         logger_name = self.get_next_command_logger_name()
         ssh = SSHCallWrapper(self.ssh_argv + list(command))
         return SSHCommand(ssh, argv, logger_name, log_stdout=log_stdout,
-                          collect_output=collect_output)
+                          collect_output=collect_output,
+                          get_logger=self.host.config.get_logger)
 
     def file_exists(self, path):
         self.log.info('STAT %s', path)
@@ -386,9 +392,10 @@ class SSHCallWrapper(object):
 class SSHCommand(Command):
     """Command implementation for ParamikoTransport and OpenSSHTranspport"""
     def __init__(self, ssh, argv, logger_name, log_stdout=True,
-                 collect_output=True, encoding='utf-8'):
+                 collect_output=True, encoding='utf-8', get_logger=None):
         super(SSHCommand, self).__init__(argv, logger_name,
-                                         log_stdout=log_stdout)
+                                         log_stdout=log_stdout,
+                                         get_logger=get_logger)
         self._stdout_lines = []
         self._stderr_lines = []
         self.running_threads = set()
@@ -430,7 +437,7 @@ class SSHCommand(Command):
 
         The thread is added to ``self.running_threads``.
         """
-        log = logging.getLogger('%s.%s' % (self.logger_name, name))
+        log = self.get_logger(self.logger_name)
 
         def read_stream():
             for line in stream:

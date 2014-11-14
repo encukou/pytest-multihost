@@ -48,7 +48,7 @@ class Config(object):
     extra_init_args = ()
 
     def __init__(self, **kwargs):
-        self.log = logging.getLogger('%s.%s' % (__name__, type(self).__name__))
+        self.log = self.get_logger('%s.%s' % (__name__, type(self).__name__))
 
         admin_password = kwargs.get('admin_password') or 'Secret123'
 
@@ -70,6 +70,13 @@ class Config(object):
 
     def get_domain_class(self):
         return Domain
+
+    def get_logger(self, name):
+        """Get a logger of the given name
+
+        Override in subclasses to use a custom logging system
+        """
+        return logging.getLogger(name)
 
     @classmethod
     def from_dict(cls, dct):
@@ -171,7 +178,7 @@ class Domain(object):
     See README for an overview of the core classes.
     """
     def __init__(self, config, name, domain_type):
-        self.log = logging.getLogger('%s.%s' % (__name__, type(self).__name__))
+        self.log = config.get_logger('%s.%s' % (__name__, type(self).__name__))
         self.type = str(domain_type)
 
         self.config = config

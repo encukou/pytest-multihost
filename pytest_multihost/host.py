@@ -22,7 +22,6 @@
 import os
 import socket
 import subprocess
-import logging
 
 from pytest_multihost import transport
 from pytest_multihost.util import check_config_dict_empty, shell_quote
@@ -58,7 +57,7 @@ class BaseHost(object):
 
         self.logger_name = '%s.%s.%s' % (
             self.__module__, type(self).__name__, shortname)
-        self.log = logging.getLogger(self.logger_name)
+        self.log = self.config.get_logger(self.logger_name)
 
         if ip:
             self.ip = str(ip)
