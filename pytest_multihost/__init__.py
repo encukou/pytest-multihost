@@ -1,1 +1,1 @@
-from pytest_multihost.plugin import make_fixture
+from pytest_multihost.plugin import make_multihost_fixture

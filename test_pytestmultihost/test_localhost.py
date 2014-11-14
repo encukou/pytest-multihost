@@ -3,6 +3,7 @@ import pytest
 from subprocess import CalledProcessError
 
 import pytest_multihost
+from pytest_multihost.config import Config
 
 try:
     from paramiko import AuthenticationException
@@ -12,7 +13,7 @@ except ImportError:
 
 @pytest.fixture(scope='class')
 def multihost(request):
-    mh = pytest_multihost.make_fixture(
+    mh = pytest_multihost.make_multihost_fixture(
         request,
         descriptions=[
             {
@@ -21,7 +22,7 @@ def multihost(request):
                 },
             },
         ],
-        _confdict={
+        _config=Config.from_dict({
             'ssh_username': getpass.getuser(),
             'domains': [
                 {
@@ -36,7 +37,7 @@ def multihost(request):
                     ],
                 },
             ],
-        },
+        }),
     )
     mh.host = mh.config.domains[0].hosts[0]
     return mh.install()

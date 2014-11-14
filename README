@@ -44,9 +44,12 @@ attributes – for example, Config.ntp_server.
 To use the multihost plugin in tests, create a fixture listing the domains
 and what number of which host role is needed:
 
+    import pytest
+    from pytest_multihost import make_multihost_fixture
+
     @pytest.fixture(scope='class')
     def multihost(request):
-        mh = pytest_multihost.make_fixture(
+        mh = make_multihost_fixture(
             request,
             descriptions=[
                 {
@@ -62,14 +65,16 @@ and what number of which host role is needed:
 
 If not enough hosts are available, all tests that use the fixture are skipped.
 
-The object returned from `make_fixture` only has the "config" attribute
-(and the install method).
+The object returned from `make_multihost_fixture` only has the "config"
+attribute (and the install method).
 Users are expected to add convenience attributes.
 For example, FreeIPA, which typically uses a single domain with one master,
 several replicas and some clients, would do:
 
+    from pytest_multihost import make_multihost_fixture
+
     def multihost(request):
-        mh = pytest_multihost.make_fixture(...)
+        mh = make_multihost_fixture(...)
         mh.domain = mh.config.domains[0]
         [mh.master] = mh.domain.hosts_by_role('master')
         mh.replicas = mh.domain.hosts_by_role('replica')
