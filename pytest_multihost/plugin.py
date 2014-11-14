@@ -22,9 +22,6 @@ def pytest_addoption(parser):
 def pytest_load_initial_conftests(args, early_config, parser):
     ns = early_config.known_args_namespace
     if ns.multihost_config:
-        if 'BEAKERLIB' not in os.environ:
-            raise exit('$BEAKERLIB not set, cannot use --with-beakerlib')
-
         with open(ns.multihost_config) as conffile:
             if yaml:
                 confdict = yaml.safe_load(conffile)
