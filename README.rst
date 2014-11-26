@@ -1,5 +1,22 @@
 A pytest plugin for multi-host testing.
 
+
+Downloading
+-----------
+
+Release tarballs will be made available for download from Fedora Hosted:
+    https://fedorahosted.org/released/python-pytest-multihost/
+
+The goal is to include this project in Fedora repositories. Until that happens,
+you can use testing builds from COPR – see "Developer links" below.
+
+You can also install using pip:
+    https://pypi.python.org/pypi/pytest-multihost
+
+
+Usage
+-----
+
 This plugin takes a description of your infrastructure,
 and provides, via a fixture, Host objects that commands can be called on.
 
@@ -8,21 +25,24 @@ need to extend it for its own needs.
 
 
 The object provided to tests is a Config object, which has (among others)
-these attributes:
+these attributes::
+
     test_dir – directory to store test-specific data in,
                defaults to /root/multihost_tests
     ipv6 – true if connecting via IPv6
 
     domains – the list of domains
 
-Hosts to run on are arranged in domains, which have:
+Hosts to run on are arranged in domains, which have::
+
     name – the DNS name of the domain
     type – a string specifying the type of the domain ('default' by default)
 
     config – the Config this domain is part of
     hosts – list of hosts in this domain
 
-And the hosts have:
+And the hosts have::
+
     role – type of this host; should encode the OS and installed packages
     hostname – fully qualified hostname, usually reachable from other hosts
     shortname – first component of hostname
@@ -42,7 +62,7 @@ attributes – for example, Config.ntp_server.
 
 
 To use the multihost plugin in tests, create a fixture listing the domains
-and what number of which host role is needed:
+and what number of which host role is needed::
 
     import pytest
     from pytest_multihost import make_multihost_fixture
@@ -65,11 +85,11 @@ and what number of which host role is needed:
 
 If not enough hosts are available, all tests that use the fixture are skipped.
 
-The object returned from `make_multihost_fixture` only has the "config"
+The object returned from ``make_multihost_fixture`` only has the "config"
 attribute (and the install method).
 Users are expected to add convenience attributes.
 For example, FreeIPA, which typically uses a single domain with one master,
-several replicas and some clients, would do:
+several replicas and some clients, would do::
 
     from pytest_multihost import make_multihost_fixture
 
@@ -87,7 +107,7 @@ a function argument.
 Unlike regular pytest fixtures, it needs to be used on a class: its
 install() method calls the class' install(), and at cleanup time, uninstall()
 is called.
-For a simplified example, FreeIPA usage could look something like this:
+For a simplified example, FreeIPA usage could look something like this::
 
     class TestMultihost(object):
         def install(self, multihost):
@@ -99,13 +119,13 @@ For a simplified example, FreeIPA usage could look something like this:
         def test_installed(self, multihost):
             multihost.master.run_command(['ipa', 'ping'])
 
-Note: install() and uninstall() are not testing functions, they are only
+.. note::
+    install() and uninstall() are not testing functions, they are only
     called with (self, multihost).
 
 
 The description of infrastructure is provided in a JSON or YAML file,
-which is named on the py.test command line. For example:
-
+which is named on the py.test command line. For example::
 
     ssh_key_filename: ~/.ssh/id_rsa
     domains:
@@ -137,3 +157,30 @@ $ py.test --multihost-config=/path/to/configfile.yaml
 
 To use YAML files, the PyYAML package is required. Without it only JSON files
 can be used.
+
+Contributing
+------------
+
+The project is happy to accept patches!
+Please format your contribution using the FreeIPA `patch guidelines`_,
+and send it to <freeipa-devel@redhat.com>.
+Any development discussion is welcome there.
+
+Someday the project might get its own list, but that seems premature now.
+
+
+Developer links
+---------------
+
+  * Bug tracker: https://fedorahosted.org/python-pytest-multihost/report/3
+  * Code browser: ​https://git.fedorahosted.org/cgit/python-pytest-multihost
+  * git clone ​https://git.fedorahosted.org/git/python-pytest-multihost.git
+  * Unstable packages for Fedora: https://copr.fedoraproject.org/coprs/pviktori/pytest-plugins/
+
+To release, update version in setup.py, add a Git tag like "v0.3",
+and run `make tarball`.
+Running `make upload` will put the tarball to Fedora Hosted and PyPI,
+and a SRPM on Fedorapeople, if you have the rights.
+Running `make release` will upload and fire a COPR build.
+
+.. _patch guidelines: http://www.freeipa.org/page/Contribute/Patch_Format

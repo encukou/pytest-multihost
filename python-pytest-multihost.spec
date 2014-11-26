@@ -37,7 +37,7 @@ Requires: python
 Requires: pytest
 
 %if 0%{?fedora}
-# These are not *strictly* required, but make life much easier.
+# These are not *strictly* required, but are part of the default workflow.
 Requires: PyYAML
 Requires: python-paramiko
 %endif

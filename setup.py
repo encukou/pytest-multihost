@@ -4,10 +4,17 @@
 #
 
 from setuptools import setup
+import io
+
+with io.open('README.rst', 'rt', encoding='utf-8') as f:
+    readme_contents = f.read()
 
 setup_args = dict(
     name = "pytest-multihost",
     version = "0.2",
+    description = "Utility for writing multi-host tests for pytest",
+    long_description = readme_contents,
+    url = "https://fedorahosted.org/python-pytest-multihost/",
     license = "GPL",
     author = "Petr Viktorin",
     author_email = "pviktori@redhat.com",
