@@ -12,7 +12,7 @@
 
 %global srcname pytest-multihost
 %global modulename pytest_multihost
-%global srcversion 0.2
+%global srcversion 0.3
 %global versionedname %{srcname}-%{srcversion}
 
 Name: python-%{srcname}
@@ -100,20 +100,23 @@ popd
 
 %files
 %doc COPYING
-%doc README
+%doc README.rst
 %{python_sitelib}/%{modulename}-%{version}-py2.?.egg-info
 %{python_sitelib}/%{modulename}/
 
 %if 0%{?with_python3}
 %files -n python3-%{srcname}
 %doc COPYING
-%doc README
+%doc README.rst
 %{python3_sitelib}/%{modulename}-%{version}-py%{python3_version}.egg-info
 %{python3_sitelib}/%{modulename}/
 %endif
 
 
 %changelog
+* Wed Nov 26 2014 Petr Viktorin <encukou@gmail.com> - 0.3-1
+- "Upstream" packaging fixes
+
 * Mon Nov 10 2014 Petr Viktorin <encukou@gmail.com> - 0.2-1
 - better extensibility
 - bug fixes
