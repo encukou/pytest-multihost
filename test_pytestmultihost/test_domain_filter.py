@@ -1,3 +1,7 @@
+#
+# Copyright (C) 2014 pytest-multihost contributors. See COPYING for license
+#
+
 import pytest
 
 from pytest_multihost.config import Config, FilterError
