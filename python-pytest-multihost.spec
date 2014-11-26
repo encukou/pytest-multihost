@@ -18,7 +18,7 @@
 Name: python-%{srcname}
 Version: %{srcversion}
 Release: 1%{?dist}
-Summary: Utility for running multi-host tests in pytest
+Summary: Utility for writing multi-host tests for pytest
 
 License: GPLv3+
 URL: https://github.com/encukou/%{srcname}
@@ -50,7 +50,7 @@ specify how many machines they need and commands/checks to run on them.
 
 %if 0%{?with_python3}
 %package -n python3-%{srcname}
-Summary: Utility for running multi-host tests in pytest
+Summary: Utility for writing multi-host tests for pytest
 
 Requires: python3
 Requires: python3-pytest
