@@ -74,6 +74,13 @@ class Config(object):
         If more arguments are needed, include them in the class'
         extra_init_args set.
         """
+
+        # Backwards compatibility with FreeIPA's root-only logins
+        if 'root_ssh_key_filename' in dct:
+            dct['ssh_key_filename'] = dct.pop('root_ssh_key_filename')
+        if 'root_password' in dct:
+            dct['ssh_password'] = dct.pop('root_password')
+
         all_init_args = set(init_args) | set(cls.extra_init_args)
         extra_args = set(dct) - all_init_args
         if extra_args:
