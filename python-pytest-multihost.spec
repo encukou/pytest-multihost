@@ -12,7 +12,7 @@
 
 %global srcname pytest-multihost
 %global modulename pytest_multihost
-%global srcversion 0.3
+%global srcversion 0.4
 %global versionedname %{srcname}-%{srcversion}
 
 Name: python-%{srcname}
@@ -114,6 +114,9 @@ popd
 
 
 %changelog
+* Wed Nov 26 2014 Petr Viktorin <encukou@gmail.com> - 0.4-1
+- Ensure backwards compatibility with FreeIPA's root-only logins
+
 * Wed Nov 26 2014 Petr Viktorin <encukou@gmail.com> - 0.3-1
 - "Upstream" packaging fixes
 

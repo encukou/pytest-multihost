@@ -11,7 +11,7 @@ with io.open('README.rst', 'rt', encoding='utf-8') as f:
 
 setup_args = dict(
     name = "pytest-multihost",
-    version = "0.3",
+    version = "0.4",
     description = "Utility for writing multi-host tests for pytest",
     long_description = readme_contents,
     url = "https://fedorahosted.org/python-pytest-multihost/",
