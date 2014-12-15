@@ -93,6 +93,7 @@ several replicas and some clients, would do::
 
     from pytest_multihost import make_multihost_fixture
 
+    @pytest.fixture
     def multihost(request):
         mh = make_multihost_fixture(...)
         mh.domain = mh.config.domains[0]
