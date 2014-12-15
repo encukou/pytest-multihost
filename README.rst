@@ -95,7 +95,17 @@ several replicas and some clients, would do::
 
     @pytest.fixture
     def multihost(request):
-        mh = make_multihost_fixture(...)
+        mh = make_multihost_fixture(request, descriptions=[
+                {
+                    'type': 'ipa',
+                    'hosts': {
+                        'master': 1,
+                        'replica': 1,
+                        'client': 1,
+                    },
+                },
+            ],
+        )
         mh.domain = mh.config.domains[0]
         [mh.master] = mh.domain.hosts_by_role('master')
         mh.replicas = mh.domain.hosts_by_role('replica')
@@ -131,6 +141,7 @@ which is named on the py.test command line. For example::
     ssh_key_filename: ~/.ssh/id_rsa
     domains:
       - name: adomain.test
+        type: test-a
         hosts:
           - name: master
             ip: 192.0.2.1
@@ -149,6 +160,7 @@ which is named on the py.test command line. For example::
             ip: 192.0.2.6
             role: extrarole
       - name: bdomain.test
+        type: test-b
         hosts:
           - name: master.bdomain.test
             ip='192.0.2.65
