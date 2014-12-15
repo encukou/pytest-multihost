@@ -17,7 +17,7 @@
 
 Name: python-%{srcname}
 Version: %{srcversion}
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Utility for writing multi-host tests for pytest
 
 License: GPLv3+
@@ -34,7 +34,7 @@ BuildRequires: python3-setuptools
 %endif
 
 Requires: python
-Requires: pytest
+Requires: pytest >= 2.4.0
 
 %if 0%{?fedora}
 # These are not *strictly* required, but are part of the default workflow.
@@ -114,6 +114,9 @@ popd
 
 
 %changelog
+* Wed Nov 26 2014 Petr Viktorin <encukou@gmail.com> - 0.4-2
+- Specify minimum version of pytest
+
 * Wed Nov 26 2014 Petr Viktorin <encukou@gmail.com> - 0.4-1
 - Ensure backwards compatibility with FreeIPA's root-only logins
 

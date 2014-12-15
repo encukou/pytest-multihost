@@ -27,7 +27,7 @@ setup_args = dict(
         'Programming Language :: Python :: 2.7',
         'Topic :: Software Development :: Quality Assurance',
     ],
-    install_requires=['pytest'],  # (paramiko & PyYAML are suggested)
+    install_requires=['pytest>=2.4.0'],  # (paramiko & PyYAML are suggested)
     entry_points = {
         'pytest11': [
             'multihost = pytest_multihost.plugin',
