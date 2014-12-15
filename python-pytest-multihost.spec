@@ -12,12 +12,12 @@
 
 %global srcname pytest-multihost
 %global modulename pytest_multihost
-%global srcversion 0.4
+%global srcversion 0.5
 %global versionedname %{srcname}-%{srcversion}
 
 Name: python-%{srcname}
 Version: %{srcversion}
-Release: 2%{?dist}
+Release: 1%{?dist}
 Summary: Utility for writing multi-host tests for pytest
 
 License: GPLv3+
@@ -114,6 +114,9 @@ popd
 
 
 %changelog
+* Wed Nov 26 2014 Petr Viktorin <encukou@gmail.com> - 0.5-1
+- Packaging fixes
+
 * Wed Nov 26 2014 Petr Viktorin <encukou@gmail.com> - 0.4-2
 - Specify minimum version of pytest
 
