@@ -16,7 +16,11 @@ install:
 tarball: ${TARBALLNAME}
 
 ${TARBALLNAME}:
-	git archive v${VERSION} -o ${TARBALLNAME} --prefix ${VERSIONEDNAME}/
+	if [ -n "$$(git status --porcelain)" ]; then \
+		echo "Changes not commited to Git"; \
+		exit 1; \
+	fi
+	git archive HEAD -o ${TARBALLNAME} --prefix ${VERSIONEDNAME}/
 
 upload-fedorahosted: tarball
 	scp ${TARBALLNAME} fedorahosted.org:${FEDORA_PROJECT}
@@ -51,4 +55,4 @@ mock: srpm
 
 release: upload
 
-.PHONY: all install tarball upload upload-fedorahosted upload-pypi wheel srpm copr-build release
+.PHONY: all install ${TARBALLNAME} tarball upload upload-fedorahosted upload-pypi wheel srpm copr-build release
