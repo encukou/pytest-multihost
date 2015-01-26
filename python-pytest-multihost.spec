@@ -85,6 +85,7 @@ popd
 %endif
 
 %check
+# Do not run the test that needs passwordless SSH to localhost set up
 %{__python2} -m pytest -m "not needs_ssh"
 
 %if 0%{?with_python3}
