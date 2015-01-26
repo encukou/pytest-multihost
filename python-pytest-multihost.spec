@@ -12,12 +12,12 @@
 
 %global srcname pytest-multihost
 %global modulename pytest_multihost
-%global srcversion 0.5
+%global srcversion 0.6
 %global versionedname %{srcname}-%{srcversion}
 
 Name: python-%{srcname}
 Version: %{srcversion}
-Release: 2%{?dist}
+Release: 1%{?dist}
 Summary: Utility for writing multi-host tests for pytest
 
 License: GPLv3+
@@ -85,11 +85,11 @@ popd
 %endif
 
 %check
-%{__python2} -m pytest
+%{__python2} -m pytest -m "not needs_ssh"
 
 %if 0%{?with_python3}
 pushd %{py3dir}
-%{__python3} -m pytest
+%{__python3} -m pytest -m "not needs_ssh"
 popd
 %endif
 
@@ -125,7 +125,7 @@ popd
 
 
 %changelog
-* Mon Jan 26 2015 Petr Viktorin <encukou@gmail.com> - 0.5-2
+* Mon Jan 26 2015 Petr Viktorin <encukou@gmail.com> - 0.6-1
 - Run tests
 - Install COPYING as a license
 

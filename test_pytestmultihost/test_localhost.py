@@ -47,6 +47,7 @@ def multihost(request):
     return mh.install()
 
 
+@pytest.mark.needs_ssh
 class TestLocalhost(object):
     def test_localhost(self, multihost):
         host = multihost.host
