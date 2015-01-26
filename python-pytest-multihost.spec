@@ -17,7 +17,7 @@
 
 Name: python-%{srcname}
 Version: %{srcversion}
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Utility for writing multi-host tests for pytest
 
 License: GPLv3+
@@ -28,9 +28,11 @@ Source0: https://github.com/encukou/%{srcname}/archive/v%{srcversion}.tar.gz#/%{
 BuildArch: noarch
 BuildRequires: python-devel
 BuildRequires: python-setuptools
+BuildRequires: pytest
 %if 0%{?with_python3}
 BuildRequires: python3-devel
 BuildRequires: python3-setuptools
+BuildRequires: python3-pytest
 %endif
 
 Requires: python
@@ -82,6 +84,15 @@ pushd %{py3dir}
 popd
 %endif
 
+%check
+%{__python2} -m pytest
+
+%if 0%{?with_python3}
+pushd %{py3dir}
+%{__python3} -m pytest
+popd
+%endif
+
 %install
 %{__python2} setup.py install --skip-build --root %{buildroot}
 %if 0%{?with_python3}
@@ -106,7 +117,7 @@ popd
 
 %if 0%{?with_python3}
 %files -n python3-%{srcname}
-%doc COPYING
+%license COPYING
 %doc README.rst
 %{python3_sitelib}/%{modulename}-%{version}-py%{python3_version}.egg-info
 %{python3_sitelib}/%{modulename}/
@@ -114,6 +125,10 @@ popd
 
 
 %changelog
+* Mon Jan 26 2015 Petr Viktorin <encukou@gmail.com> - 0.5-2
+- Run tests
+- Install COPYING as a license
+
 * Wed Nov 26 2014 Petr Viktorin <encukou@gmail.com> - 0.5-1
 - Packaging fixes
 
