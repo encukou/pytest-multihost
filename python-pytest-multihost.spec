@@ -17,7 +17,7 @@
 
 Name: python-%{srcname}
 Version: %{srcversion}
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Utility for writing multi-host tests for pytest
 
 License: GPLv3+
@@ -111,7 +111,7 @@ popd
 %endif
 
 %files
-%doc COPYING
+%license COPYING
 %doc README.rst
 %{python_sitelib}/%{modulename}-%{version}-py2.?.egg-info
 %{python_sitelib}/%{modulename}/
@@ -126,6 +126,9 @@ popd
 
 
 %changelog
+* Tue Jan 27 2015 Petr Viktorin <encukou@gmail.com> - 0.6-2
+- Also install COPYING as a license on the Python 3 version
+
 * Mon Jan 26 2015 Petr Viktorin <encukou@gmail.com> - 0.6-1
 - Run tests
 - Install COPYING as a license
