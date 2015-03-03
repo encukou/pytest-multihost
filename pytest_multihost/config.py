@@ -16,14 +16,14 @@ class FilterError(ValueError):
     """Raised when domains description could not be satisfied"""
 
 
-init_args = {
+init_args = [
     'test_dir',
     'ssh_key_filename',
     'ssh_password',
     'ssh_username',
     'domains',
     'ipv6',
-}
+]
 
 
 class Config(object):
@@ -101,7 +101,7 @@ class Config(object):
         """
         dct = {'domains': [d.to_dict() for d in self.domains]}
 
-        autosave = (set(init_args) | set(_autosave_names)) - {'domains'}
+        autosave = (set(init_args) | set(_autosave_names)) - set(['domains'])
         for argname in autosave:
             value = getattr(self, argname)
             dct[argname] = value
