@@ -11,7 +11,7 @@ with io.open('README.rst', 'rt', encoding='utf-8') as f:
 
 setup_args = dict(
     name = "pytest-multihost",
-    version = "0.6",
+    version = "0.7",
     description = "Utility for writing multi-host tests for pytest",
     long_description = readme_contents,
     url = "https://fedorahosted.org/python-pytest-multihost/",
@@ -24,7 +24,9 @@ setup_args = dict(
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
         'Operating System :: POSIX',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
         'Topic :: Software Development :: Quality Assurance',
     ],
     install_requires=['pytest>=2.4.0'],  # (paramiko & PyYAML are suggested)

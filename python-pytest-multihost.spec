@@ -12,12 +12,12 @@
 
 %global srcname pytest-multihost
 %global modulename pytest_multihost
-%global srcversion 0.6
+%global srcversion 0.7
 %global versionedname %{srcname}-%{srcversion}
 
 Name: python-%{srcname}
 Version: %{srcversion}
-Release: 3%{?dist}
+Release: 1%{?dist}
 Summary: Utility for writing multi-host tests for pytest
 
 License: GPLv3+
@@ -130,6 +130,9 @@ popd
 
 
 %changelog
+* Mon Mar 2 2015 Petr Viktorin <encukou@gmail.com> - 0.7-1
+- Add compatibility with Python 2.6
+
 * Mon Mar 2 2015 Petr Viktorin <encukou@gmail.com> - 0.6-3
 - Don't use licence macro on RHEL 6
 
