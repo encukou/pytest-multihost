@@ -15,8 +15,27 @@ except ImportError:
     class AuthenticationException(Exception):
         """Never raised"""
 
+def get_conf_dict():
+    return {
+        'ssh_username': getpass.getuser(),
+        'domains': [
+            {
+                'name': 'localdomain',
+                'hosts': [
+                    {
+                        'name': 'localhost',
+                        'external_hostname': 'localhost',
+                        'ip': '127.0.0.1',
+                        'role': 'local',
+                    },
+                ],
+            },
+        ],
+    }
+
 @pytest.fixture(scope='class')
 def multihost(request):
+    conf = get_conf_dict()
     mh = pytest_multihost.make_multihost_fixture(
         request,
         descriptions=[
@@ -26,23 +45,9 @@ def multihost(request):
                 },
             },
         ],
-        _config=Config.from_dict({
-            'ssh_username': getpass.getuser(),
-            'domains': [
-                {
-                    'name': 'localdomain',
-                    'hosts': [
-                        {
-                            'name': 'localhost',
-                            'external_hostname': 'localhost',
-                            'ip': '127.0.0.1',
-                            'role': 'local',
-                        },
-                    ],
-                },
-            ],
-        }),
+        _config=Config.from_dict(conf),
     )
+    assert conf == get_conf_dict()
     mh.host = mh.config.domains[0].hosts[0]
     return mh.install()
 

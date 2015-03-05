@@ -52,7 +52,7 @@ class Config(object):
         self.domains = []
         domain_class = self.get_domain_class()
         for domain_dict in kwargs.pop('domains'):
-            self.domains.append(domain_class.from_dict(domain_dict, self))
+            self.domains.append(domain_class.from_dict(dict(domain_dict), self))
 
     def get_domain_class(self):
         return Domain
@@ -211,7 +211,7 @@ class Domain(object):
 
         for host_dict in dct.pop('hosts'):
             host_class = self.get_host_class(host_dict)
-            host = host_class.from_dict(host_dict, self)
+            host = host_class.from_dict(dict(host_dict), self)
             self.hosts.append(host)
 
         check_config_dict_empty(dct, 'domain %s' % domain_name)
