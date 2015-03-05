@@ -12,7 +12,7 @@
 
 %global srcname pytest-multihost
 %global modulename pytest_multihost
-%global srcversion 0.7
+%global srcversion 0.8
 %global versionedname %{srcname}-%{srcversion}
 
 Name: python-%{srcname}
@@ -130,6 +130,9 @@ popd
 
 
 %changelog
+* Mon Mar 2 2015 Petr Viktorin <encukou@gmail.com> - 0.8-1
+- Fix creating multiple Configs from one dict
+
 * Mon Mar 2 2015 Petr Viktorin <encukou@gmail.com> - 0.7-1
 - Add compatibility with Python 2.6
 
