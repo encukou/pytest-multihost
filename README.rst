@@ -81,19 +81,19 @@ and what number of which host role is needed::
                 },
             ],
         )
-        return mh.install()
+        return mh
 
 If not enough hosts are available, all tests that use the fixture are skipped.
 
 The object returned from ``make_multihost_fixture`` only has the "config"
-attribute (and the install method).
+attribute.
 Users are expected to add convenience attributes.
 For example, FreeIPA, which typically uses a single domain with one master,
 several replicas and some clients, would do::
 
     from pytest_multihost import make_multihost_fixture
 
-    @pytest.fixture
+    @pytest.fixture(scope='class')
     def multihost(request):
         mh = make_multihost_fixture(request, descriptions=[
                 {
@@ -106,18 +106,23 @@ several replicas and some clients, would do::
                 },
             ],
         )
+
+        # Set convenience attributes
         mh.domain = mh.config.domains[0]
         [mh.master] = mh.domain.hosts_by_role('master')
         mh.replicas = mh.domain.hosts_by_role('replica')
         mh.clients = mh.domain.hosts_by_role('client')
-        return mh.install()
+
+        # IPA-specific initialization/teardown of the hosts
+        request.cls().install(mh)
+        request.addfinalizer(lambda: request.cls().uninstall(mh))
+
+        # Return the fixture
+        return mh
 
 
 As with any pytest fixture, this can be used by getting it as
 a function argument.
-Unlike regular pytest fixtures, it needs to be used on a class: its
-install() method calls the class' install(), and at cleanup time, uninstall()
-is called.
 For a simplified example, FreeIPA usage could look something like this::
 
     class TestMultihost(object):
@@ -129,10 +134,6 @@ For a simplified example, FreeIPA usage could look something like this::
 
         def test_installed(self, multihost):
             multihost.master.run_command(['ipa', 'ping'])
-
-.. note::
-    install() and uninstall() are not testing functions, they are only
-    called with (self, multihost).
 
 
 The description of infrastructure is provided in a JSON or YAML file,

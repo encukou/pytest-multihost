@@ -62,6 +62,10 @@ class MultihostFixture(object):
         self._pytestmh_request = request
 
     def install(self):
+        """Call install()/uninstall() for the class this fixture is used on
+
+        This function is DEPRECATED.
+        """
         request = self._pytestmh_request
         cls = request.cls
         install = getattr(cls, 'install', None)
