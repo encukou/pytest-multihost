@@ -111,7 +111,7 @@ popd
 %endif
 
 %files
-%if 0%{?rhel} < 7
+%if 0%{?rhel} && 0%{?rhel} <= 6
 %doc COPYING
 %else
 %license COPYING
