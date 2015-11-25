@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2013  Red Hat
+# Copyright (C) 2015  Red Hat
 # Copyright (C) 2014  pytest-multihost contributors
 # See COPYING for license
 #
@@ -97,6 +97,18 @@ class Transport(object):
     def get_next_command_logger_name(self):
         self._command_index += 1
         return '%s.cmd%s' % (self.host.logger_name, self._command_index)
+
+    def rmdir(self, path):
+        """Remove directory"""
+        raise NotImplementedError('Transport.rmdir')
+
+    def rename_file(self, oldpath, newpath):
+        """Rename file"""
+        raise NotImplementedError('Transport.rename_file')
+
+    def remove_file(self, filepath):
+        """Removes files"""
+        raise NotImplementedError('Transport.remove_file')
 
 
 class Command(object):
@@ -246,6 +258,18 @@ class ParamikoTransport(Transport):
         self.log.info('PUT %s', remotepath)
         self.sftp.put(localpath, remotepath)
 
+    def rmdir(self, path):
+        self.log.info('RMDIR %s', path)
+        self.sftp.rmdir(path)
+
+    def remove_file(self, filepath):
+        self.log.info('REMOVE FILE %s', filepath)
+        self.sftp.remove(filepath)
+
+    def rename_file(self, oldpath, newpath):
+        self.log.info('RENAME %s to %s', oldpath, newpath)
+        self.sftp.rename(oldpath, newpath)
+
 
 class OpenSSHTransport(Transport):
     """Transport that uses the `ssh` binary"""
@@ -340,6 +364,26 @@ class OpenSSHTransport(Transport):
             return cmd.stdout_text
         else:
             raise IOError('File %r could not be read' % filename)
+
+    def rmdir(self, path):
+        self.log.info('RMDIR %s', path)
+        cmd = self._run(['rmdir', path])
+        cmd.wait()
+
+    def remove_file(self, filepath):
+        self.log.info('REMOVE FILE %s', filepath)
+        cmd = self._run(['rm', filepath])
+        cmd.wait()
+        if cmd.returncode != 0:
+            raise IOError('File %r could not be deleted' % filepath)
+
+    def rename_file(self, oldpath, newpath):
+        self.log.info('RENAME %s TO %s', oldpath, newpath)
+        cmd = self._run(['mv', oldpath, newpath])
+        cmd.wait()
+        if cmd.returncode != 0:
+            raise IOError('File %r could not be renamed to %r '
+                          % (oldpath, newpath))
 
 
 class SSHCallWrapper(object):
