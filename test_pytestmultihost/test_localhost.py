@@ -5,8 +5,11 @@
 import getpass
 import pytest
 from subprocess import CalledProcessError
+import contextlib
+import os
 
 import pytest_multihost
+import pytest_multihost.transport
 from pytest_multihost.config import Config
 
 try:
@@ -33,8 +36,17 @@ def get_conf_dict():
         ],
     }
 
+@pytest.fixture(scope='class', params=['paramiko', 'openssh'])
+def transport_class(request):
+    if request.param == 'paramiko':
+        return pytest_multihost.transport.ParamikoTransport
+    elif request.param == 'openssh':
+        return pytest_multihost.transport.OpenSSHTransport
+    else:
+        raise ValueError('bad transport_class')
+
 @pytest.fixture(scope='class')
-def multihost(request):
+def multihost(request, transport_class):
     conf = get_conf_dict()
     mh = pytest_multihost.make_multihost_fixture(
         request,
@@ -49,22 +61,83 @@ def multihost(request):
     )
     assert conf == get_conf_dict()
     mh.host = mh.config.domains[0].hosts[0]
+    mh.host.transport_class = transport_class
+    assert isinstance(mh.host.transport, transport_class)
     return mh.install()
+
+
+@contextlib.contextmanager
+def _first_command(host):
+    """If managed command fails, prints a message to help debugging"""
+    try:
+        yield
+    except (AuthenticationException, CalledProcessError):
+        print (
+            'Cannot login to %s using default SSH key (%s), user %s. '
+            'You might want to add your own key '
+            'to ~/.ssh/authorized_keys.'
+            'Or, run py.test with -m "not needs_ssh"') % (
+                host.external_hostname,
+                host.ssh_key_filename,
+                getpass.getuser())
+        raise
 
 
 @pytest.mark.needs_ssh
 class TestLocalhost(object):
-    def test_localhost(self, multihost):
+    def test_echo(self, multihost):
         host = multihost.host
-        try:
+        with _first_command(host):
             echo = host.run_command(['echo', 'hello', 'world'])
-        except (AuthenticationException, CalledProcessError):
-            print (
-                'Cannot login to %s using default SSH key (%s), user %s. '
-                'You might want to add your own key '
-                'to ~/.ssh/authorized_keys.') % (
-                    host.external_hostname,
-                    host.ssh_key_filename,
-                    getpass.getuser())
-            raise
         assert echo.stdout_text == 'hello world\n'
+
+    def test_put_get_file_contents(self, multihost, tmpdir):
+        host = multihost.host
+        filename = str(tmpdir.join('test.txt'))
+        with _first_command(host):
+            host.put_file_contents(filename, 'test')
+        result = host.get_file_contents(filename)
+        assert result == 'test'
+
+    def test_get_file_contents_nonexisting(self, multihost, tmpdir):
+        host = multihost.host
+        filename = str(tmpdir.join('test.txt'))
+        with pytest.raises(IOError):
+            host.get_file_contents(filename)
+
+    def test_rename_file(self, multihost, tmpdir):
+        host = multihost.host
+        filename = str(tmpdir.join('test.txt'))
+        filename2 = str(tmpdir.join('renamed.txt'))
+        with open(filename, 'w') as f:
+            f.write('test')
+        with _first_command(host):
+            host.transport.rename_file(filename, filename2)
+        with open(filename2, 'r') as f:
+            assert f.read() == 'test'
+
+    def test_remove_file(self, multihost, tmpdir):
+        host = multihost.host
+        filename = str(tmpdir.join('test.txt'))
+        with open(filename, 'w') as f:
+            f.write('test')
+        assert os.path.exists(filename)
+        with _first_command(host):
+            host.transport.remove_file(filename)
+        assert not os.path.exists(filename)
+
+    def test_mkdir(self, multihost, tmpdir):
+        host = multihost.host
+        filename = str(tmpdir.join('testdir'))
+        with _first_command(host):
+            host.transport.mkdir(filename)
+        assert os.path.exists(filename)
+        assert os.path.isdir(filename)
+
+    def test_rmdir(self, multihost, tmpdir):
+        host = multihost.host
+        filename = str(tmpdir.join('testdir'))
+        os.mkdir(filename)
+        with _first_command(host):
+            host.transport.rmdir(filename)
+        assert not os.path.exists(filename)
