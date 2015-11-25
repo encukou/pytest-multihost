@@ -147,9 +147,9 @@ class BaseHost(object):
                 raise NotImplementedError('transport class not available')
             return self._transport
 
-    def get_file_contents(self, filename):
+    def get_file_contents(self, filename, encoding=None):
         """Shortcut for transport.get_file_contents"""
-        return self.transport.get_file_contents(filename)
+        return self.transport.get_file_contents(filename, encoding=encoding)
 
     def put_file_contents(self, filename, contents):
         """Shortcut for transport.put_file_contents"""

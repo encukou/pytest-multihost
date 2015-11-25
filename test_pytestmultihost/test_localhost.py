@@ -97,6 +97,9 @@ class TestLocalhost(object):
         with _first_command(host):
             host.put_file_contents(filename, 'test')
         result = host.get_file_contents(filename)
+        assert result == b'test'
+
+        result = host.get_file_contents(filename, encoding='utf-8')
         assert result == 'test'
 
     def test_get_file_contents_nonexisting(self, multihost, tmpdir):

@@ -43,7 +43,7 @@ class Transport(object):
         self.log = host.config.get_logger(self.logger_name)
         self._command_index = 0
 
-    def get_file_contents(self, filename):
+    def get_file_contents(self, filename, encoding=None):
         """Read the named remote file and return the contents as a string"""
         raise NotImplementedError('Transport.get_file_contents')
 
@@ -214,11 +214,14 @@ class ParamikoTransport(Transport):
             self._sftp = paramiko.SFTPClient.from_transport(transport)
             return self._sftp
 
-    def get_file_contents(self, filename):
+    def get_file_contents(self, filename, encoding=None):
         """Read the named remote file and return the contents as a string"""
         self.log.debug('READ %s', filename)
         with self.sftp_open(filename) as f:
-            return f.read()
+            result = f.read()
+        if encoding:
+            result = result.decode(encoding)
+        return result
 
     def put_file_contents(self, filename, contents):
         """Write the given string to the named remote file"""
@@ -356,12 +359,15 @@ class OpenSSHTransport(Transport):
         cmd.wait()
         assert cmd.stdout_text == contents
 
-    def get_file_contents(self, filename):
+    def get_file_contents(self, filename, encoding=None):
         self.log.info('GET %s', filename)
         cmd = self._run(['cat', filename], log_stdout=False)
         cmd.wait(raiseonerr=False)
         if cmd.returncode == 0:
-            return cmd.stdout_text
+            result = cmd.stdout_text
+            if encoding:
+                result = result.decode(encoding)
+            return result
         else:
             raise IOError('File %r could not be read' % filename)
 
