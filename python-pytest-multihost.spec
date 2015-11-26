@@ -133,14 +133,14 @@ popd
 
 
 %changelog
-* Mon Mar 2 2015 Petr Viktorin <encukou@gmail.com> - 0.9-1
+* Thu Nov 26 2015 Petr Viktorin <encukou@gmail.com> - 0.9-1
 - Add more file manipulation functions (thanks to Abhijeet Kasurde)
 - Slightly improve Python 3 support
 
-* Mon Mar 2 2015 Petr Viktorin <encukou@gmail.com> - 0.8-1
+* Tue Nov 10 2015 Petr Viktorin <encukou@gmail.com> - 0.8-1
 - Fix creating multiple Configs from one dict
 
-* Mon Mar 2 2015 Petr Viktorin <encukou@gmail.com> - 0.7-1
+* Tue Nov 10 2015 Petr Viktorin <encukou@gmail.com> - 0.7-1
 - Add compatibility with Python 2.6
 
 * Tue Nov 10 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.6-4
