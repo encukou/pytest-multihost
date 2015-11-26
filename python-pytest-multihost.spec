@@ -136,6 +136,12 @@ popd
 * Mon Mar 2 2015 Petr Viktorin <encukou@gmail.com> - 0.7-1
 - Add compatibility with Python 2.6
 
+* Tue Nov 10 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.6-4
+- Rebuilt for https://fedoraproject.org/wiki/Changes/python3.5
+-
+* Mon Mar 2 2015 Petr Viktorin <encukou@gmail.com> - 0.6-3
+- Don't use licence macro on RHEL 6
+
 * Mon Mar 2 2015 Petr Viktorin <encukou@gmail.com> - 0.6-3
 - Don't use licence macro on RHEL 6
 
