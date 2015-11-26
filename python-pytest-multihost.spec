@@ -12,7 +12,7 @@
 
 %global srcname pytest-multihost
 %global modulename pytest_multihost
-%global srcversion 0.8
+%global srcversion 0.9
 %global versionedname %{srcname}-%{srcversion}
 
 Name: python-%{srcname}
@@ -37,6 +37,9 @@ BuildRequires: python3-pytest
 
 Requires: python
 Requires: pytest >= 2.4.0
+
+# Should use python_provide macros, but those won't work in older EPEL
+Provides: python2-%{srcname}
 
 %if 0%{?fedora}
 # These are not *strictly* required, but are part of the default workflow.
@@ -130,6 +133,10 @@ popd
 
 
 %changelog
+* Mon Mar 2 2015 Petr Viktorin <encukou@gmail.com> - 0.9-1
+- Add more file manipulation functions (thanks to Abhijeet Kasurde)
+- Slightly improve Python 3 support
+
 * Mon Mar 2 2015 Petr Viktorin <encukou@gmail.com> - 0.8-1
 - Fix creating multiple Configs from one dict
 
