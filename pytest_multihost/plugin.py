@@ -26,7 +26,13 @@ def pytest_addoption(parser):
 def pytest_load_initial_conftests(args, early_config, parser):
     ns = early_config.known_args_namespace
     if ns.multihost_config:
-        with open(ns.multihost_config) as conffile:
+        try:
+            conffile = open(ns.multihost_config)
+        except IOError as e:
+            raise exit('Unable to open multihost configuration file %s: %s\n'
+                       'Please check path of configuration file and retry.'
+                       % (ns.multihost_config, e.args[1]))
+        with conffile:
             if yaml:
                 confdict = yaml.safe_load(conffile)
             else:
