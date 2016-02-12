@@ -158,6 +158,19 @@ class BaseHost(object):
                 raise NotImplementedError('transport class not available')
             return self._transport
 
+    def reset_connection(self):
+        """Reset the connection
+
+        The next time a connection is needed, a new Transport object will be
+        made. This new transport will take into account any configuration
+        changes, such as external_hostname, ssh_username, etc., that were made
+        on the Host.
+        """
+        try:
+            del self._transport
+        except:
+            pass
+
     def get_file_contents(self, filename, encoding=None):
         """Shortcut for transport.get_file_contents"""
         return self.transport.get_file_contents(filename, encoding=encoding)

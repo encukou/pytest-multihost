@@ -196,6 +196,21 @@ class TestLocalhost(object):
             host.transport.rmdir(filename)
         assert not os.path.exists(filename)
 
+    def test_reset(self, multihost):
+        host = multihost.host
+        with _first_command(host):
+            echo = host.run_command(['echo', 'hello', 'world'])
+        assert echo.stdout_text == 'hello world\n'
+
+        host.ssh_password = 'BAD PASSWORD'
+        host.ssh_key_filename = None
+        echo = host.run_command(['echo', 'hello', 'world'])
+        assert echo.stdout_text == 'hello world\n'
+
+        host.reset_connection()
+        with pytest.raises((AuthenticationException, RuntimeError)):
+            echo = host.run_command(['echo', 'hello', 'world'])
+
 
     def test_baduser(self, multihost_baduser, tmpdir):
         host = multihost_baduser.host
