@@ -178,13 +178,16 @@ class ParamikoTransport(Transport):
         self._transport = transport = paramiko.Transport(sock)
         transport.connect(hostkey=host.host_key)
         if host.ssh_key_filename:
-            self.log.debug('Authenticating with private RSA key')
             filename = os.path.expanduser(host.ssh_key_filename)
             key = paramiko.RSAKey.from_private_key_file(filename)
+            self.log.debug(
+                'Authenticating with private RSA key using user %s' %
+                host.ssh_username)
             transport.auth_publickey(username=host.ssh_username, key=key)
         elif host.ssh_password:
-            self.log.debug('Authenticating with password')
-            transport.auth_password(username='root',
+            self.log.debug('Authenticating with password using user %s' %
+                           host.ssh_username)
+            transport.auth_password(username=host.ssh_username,
                                     password=host.ssh_password)
         else:
             self.log.critical('No SSH credentials configured')

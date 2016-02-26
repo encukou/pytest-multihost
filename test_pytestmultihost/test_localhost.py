@@ -31,6 +31,21 @@ def get_conf_dict():
                         'ip': '127.0.0.1',
                         'role': 'local',
                     },
+                    {
+                        'name': 'localhost',
+                        'external_hostname': 'localhost',
+                        'ip': '127.0.0.1',
+                        'username': '__nonexisting_test_username__',
+                        'role': 'badusername',
+                    },
+                    {
+                        'name': 'localhost',
+                        'external_hostname': 'localhost',
+                        'ip': '127.0.0.1',
+                        'username': 'root',
+                        'password': 'BAD PASSWORD',
+                        'role': 'badpassword',
+                    },
                 ],
             },
         ],
@@ -63,6 +78,42 @@ def multihost(request, transport_class):
     mh.host = mh.config.domains[0].hosts[0]
     mh.host.transport_class = transport_class
     assert isinstance(mh.host.transport, transport_class)
+    return mh.install()
+
+@pytest.fixture(scope='class')
+def multihost_baduser(request, transport_class):
+    conf = get_conf_dict()
+    mh = pytest_multihost.make_multihost_fixture(
+        request,
+        descriptions=[
+            {
+                'hosts': {
+                    'badusername': 1,
+                },
+            },
+        ],
+        _config=Config.from_dict(conf),
+    )
+    mh.host = mh.config.domains[0].hosts[0]
+    mh.host.transport_class = transport_class
+    return mh.install()
+
+@pytest.fixture(scope='class')
+def multihost_badpassword(request, transport_class):
+    conf = get_conf_dict()
+    mh = pytest_multihost.make_multihost_fixture(
+        request,
+        descriptions=[
+            {
+                'hosts': {
+                    'badpassword': 1,
+                },
+            },
+        ],
+        _config=Config.from_dict(conf),
+    )
+    mh.host = mh.config.domains[0].hosts[0]
+    mh.host.transport_class = transport_class
     return mh.install()
 
 
@@ -144,3 +195,17 @@ class TestLocalhost(object):
         with _first_command(host):
             host.transport.rmdir(filename)
         assert not os.path.exists(filename)
+
+
+    def test_baduser(self, multihost_baduser, tmpdir):
+        host = multihost_baduser.host
+        if host.transport_class == pytest_multihost.transport.OpenSSHTransport:
+            # Avoid the OpenSSH password prompt
+            return
+        with pytest.raises(AuthenticationException):
+            echo = host.run_command(['echo', 'hello', 'world'])
+
+    def test_badpassword(self, multihost_badpassword, tmpdir):
+        host = multihost_badpassword.host
+        with pytest.raises((AuthenticationException, RuntimeError)):
+            echo = host.run_command(['echo', 'hello', 'world'])

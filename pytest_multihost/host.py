@@ -27,9 +27,19 @@ class BaseHost(object):
     transport_class = None
 
     def __init__(self, domain, hostname, role, ip=None,
-                 external_hostname=None):
+                 external_hostname=None, username=None, password=None):
         self.domain = domain
         self.role = str(role)
+        if username is None:
+            self.ssh_username = self.config.ssh_username
+        else:
+            self.ssh_username = username
+        if password is None:
+            self.ssh_key_filename = self.config.ssh_key_filename
+            self.ssh_password = self.config.ssh_password
+        else:
+            self.ssh_key_filename = None
+            self.ssh_password = password
 
         shortname, dot, ext_domain = hostname.partition('.')
         self.shortname = shortname
@@ -65,9 +75,6 @@ class BaseHost(object):
                 raise RuntimeError('Could not determine IP address of %s' %
                                    self.external_hostname)
 
-        self.ssh_password = self.config.ssh_password
-        self.ssh_key_filename = self.config.ssh_key_filename
-        self.ssh_username = self.config.ssh_username
         self.host_key = None
         self.ssh_port = 22
 
@@ -109,9 +116,13 @@ class BaseHost(object):
         ip = dct.pop('ip', None)
         external_hostname = dct.pop('external_hostname', None)
 
+        username = dct.pop('username', None)
+        password = dct.pop('password', None)
+
         check_config_dict_empty(dct, 'host %s' % hostname)
 
-        return cls(domain, hostname, role, ip, external_hostname)
+        return cls(domain, hostname, role, ip, external_hostname,
+                   username, password)
 
     def to_dict(self):
         """Export info about this Host to a dict"""
