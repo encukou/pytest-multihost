@@ -35,9 +35,8 @@ upload-fedorapeople: srpm
 
 upload: upload-fedorahosted upload-pypi upload-fedorapeople
 
-copr-build: upload-fedorapeople
-	SRPMNAME=$$(ls rpmbuild/SRPMS); \
-	copr-cli build pviktori/pytest-plugins https://fedorapeople.org/~$(FEDORA_USERNAME)/srpms/$$SRPMNAME
+copr-build: srpm
+	copr-cli build pviktori/pytest-plugins rpmbuild/SRPMS/*.src.rpm
 
 wheel:
 	python setup.py bdist_wheel
