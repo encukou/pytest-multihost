@@ -12,7 +12,7 @@
 
 %global srcname pytest-multihost
 %global modulename pytest_multihost
-%global srcversion 0.9
+%global srcversion 1.0
 %global versionedname %{srcname}-%{srcversion}
 
 Name: python-%{srcname}
@@ -133,6 +133,11 @@ popd
 
 
 %changelog
+* Thu Feb 03 2016 Petr Viktorin <encukou@gmail.com> - 1.0-1
+- Add error handling in config file handling (thanks to Abhijeet Kasurde)
+- Add support to specify username/password per host (thanks to Niranjan MR)
+- Add ability to reset the SSH connection (thanks to Scott Poore)
+
 * Thu Nov 26 2015 Petr Viktorin <encukou@gmail.com> - 0.9-1
 - Add more file manipulation functions (thanks to Abhijeet Kasurde)
 - Slightly improve Python 3 support
