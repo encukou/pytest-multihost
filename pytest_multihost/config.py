@@ -45,6 +45,7 @@ class Config(object):
         self.ssh_password = kwargs.get('ssh_password')
         self.ssh_username = kwargs.get('ssh_username', 'root')
         self.ipv6 = bool(kwargs.get('ipv6', False))
+        self.windows_test_dir = kwargs.get('windows_test_dir', '/home/Administrator')
 
         if not self.ssh_password and not self.ssh_key_filename:
             self.ssh_key_filename = '~/.ssh/id_rsa'
@@ -80,6 +81,8 @@ class Config(object):
             dct['ssh_key_filename'] = dct.pop('root_ssh_key_filename')
         if 'root_password' in dct:
             dct['ssh_password'] = dct.pop('root_password')
+        if 'windows_test_dir' in dct:
+            dct['windows_test_dir'] = dct.pop('windows_test_dir')
 
         all_init_args = set(init_args) | set(cls.extra_init_args)
         extra_args = set(dct) - all_init_args
@@ -179,8 +182,16 @@ class Domain(object):
         self.hosts = []
 
     def get_host_class(self, host_dict):
-        from pytest_multihost.host import Host
-        return Host
+        host_type = host_dict.get('host_type', 'default')
+        return self.host_classes[host_type]
+
+    @property
+    def host_classes(self):
+        from pytest_multihost.host import Host, WinHost
+        return {
+            'default': Host,
+            'windows': WinHost,
+        }
 
     @property
     def roles(self):

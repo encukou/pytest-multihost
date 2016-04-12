@@ -116,7 +116,8 @@ class TestComplexConfig(CheckConfig):
                 dict(name='srv', ip='192.0.2.33', role='srv'),
             ]),
             dict(name='adomain2.test', hosts=[
-                dict(name='master.adomain2.test', ip='192.0.2.65'),
+                dict(name='master.adomain2.test', ip='192.0.2.65',
+                     host_type='windows'),
             ]),
         ],
     )
@@ -197,6 +198,7 @@ class TestComplexConfig(CheckConfig):
                         ip="192.0.2.65",
                         external_hostname="master.adomain2.test",
                         role="master",
+                        host_type='windows',
                     ),
                 ],
             ),
@@ -228,3 +230,11 @@ class TestComplexConfig(CheckConfig):
         ad_dom = conf.domains[1]
         assert ad_dom.roles == ['srv']
         assert ad_dom.extra_roles == ['srv']
+
+        assert conf.test_dir != conf.windows_test_dir
+
+        assert conf.domains[0].hosts[0].host_type == 'default'
+        assert conf.domains[0].hosts[0].test_dir == conf.test_dir
+
+        assert conf.domains[2].hosts[0].host_type == 'windows'
+        assert conf.domains[2].hosts[0].test_dir == conf.windows_test_dir

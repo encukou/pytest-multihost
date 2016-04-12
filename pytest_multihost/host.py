@@ -24,10 +24,13 @@ class BaseHost(object):
 
     See README for an overview of the core classes.
     """
-    transport_class = None
+    transport_class = transport.SSHTransport
+    command_prelude = ''
 
     def __init__(self, domain, hostname, role, ip=None,
-                 external_hostname=None, username=None, password=None):
+                 external_hostname=None, username=None, password=None,
+                 test_dir=None, host_type=None):
+        self.host_type = host_type
         self.domain = domain
         self.role = str(role)
         if username is None:
@@ -40,6 +43,10 @@ class BaseHost(object):
         else:
             self.ssh_key_filename = None
             self.ssh_password = password
+        if test_dir is None:
+            self.test_dir = domain.config.test_dir
+        else:
+            self.test_dir = test_dir
 
         shortname, dot, ext_domain = hostname.partition('.')
         self.shortname = shortname
@@ -78,7 +85,7 @@ class BaseHost(object):
         self.host_key = None
         self.ssh_port = 22
 
-        self.env_sh_path = os.path.join(domain.config.test_dir, 'env.sh')
+        self.env_sh_path = os.path.join(self.test_dir, 'env.sh')
 
         self.log_collectors = []
 
@@ -118,20 +125,28 @@ class BaseHost(object):
 
         username = dct.pop('username', None)
         password = dct.pop('password', None)
+        host_type = dct.pop('host_type', 'default')
 
         check_config_dict_empty(dct, 'host %s' % hostname)
 
-        return cls(domain, hostname, role, ip, external_hostname,
-                   username, password)
+        return cls(domain, hostname, role,
+                   ip=ip,
+                   external_hostname=external_hostname,
+                   username=username,
+                   password=password,
+                   host_type=host_type)
 
     def to_dict(self):
         """Export info about this Host to a dict"""
-        return {
+        result = {
             'name': str(self.hostname),
             'ip': self.ip,
             'role': self.role,
             'external_hostname': self.external_hostname,
         }
+        if self.host_type != 'default':
+            result['host_type'] = self.host_type
+        return result
 
     @property
     def config(self):
@@ -204,28 +219,18 @@ class BaseHost(object):
                            does not exit with return code 0
         :param cwd: The working directory for the command
         """
-        raise NotImplementedError()
-
-
-class Host(BaseHost):
-    """A Unix host"""
-    transport_class = transport.SSHTransport
-
-    def run_command(self, argv, set_env=True, stdin_text=None,
-                    log_stdout=True, raiseonerr=True,
-                    cwd=None):
-        # This will give us a Bash shell
         command = self.transport.start_shell(argv, log_stdout=log_stdout)
-
         # Set working directory
         if cwd is None:
-            cwd = self.config.test_dir
+            cwd = self.test_dir
         command.stdin.write('cd %s\n' % shell_quote(cwd))
 
         # Set the environment
         if set_env:
             command.stdin.write('. %s\n' % shell_quote(self.env_sh_path))
-        command.stdin.write('set -e\n')
+
+        if self.command_prelude:
+            command.stdin.write(self.command_prelude)
 
         if isinstance(argv, basestring):
             # Run a shell command given as a string
@@ -247,11 +252,17 @@ class Host(BaseHost):
         return command
 
 
+class Host(BaseHost):
+    """A Unix host"""
+    command_prelude = 'set -e\n'
+
+
 class WinHost(BaseHost):
     """
     Representation of a remote Windows host.
-
-    This is a stub; Windows hosts can't currently be interacted with.
     """
 
-    pass
+    def __init__(self, domain, hostname, role, **kwargs):
+        # Set test_dir to the Windows directory, if not given explicitly
+        kwargs.setdefault('test_dir', domain.config.windows_test_dir)
+        super(WinHost, self).__init__(domain, hostname, role, **kwargs)
