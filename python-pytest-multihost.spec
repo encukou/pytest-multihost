@@ -12,7 +12,7 @@
 
 %global srcname pytest-multihost
 %global modulename pytest_multihost
-%global srcversion 1.0
+%global srcversion 1.1
 %global versionedname %{srcname}-%{srcversion}
 
 Name: python-%{srcname}
@@ -133,6 +133,9 @@ popd
 
 
 %changelog
+* Thu Apr 22 2016 Petr Viktorin <encukou@gmail.com> - 1.1-1
+- Much improved support for Windows hosts (thanks to Niranjan MR)
+
 * Thu Feb 03 2016 Petr Viktorin <encukou@gmail.com> - 1.0-1
 - Add error handling in config file handling (thanks to Abhijeet Kasurde)
 - Add support to specify username/password per host (thanks to Niranjan MR)
