@@ -26,8 +26,9 @@ upload-fedorahosted: tarball
 	scp ${TARBALLNAME} fedorahosted.org:${FEDORA_PROJECT}
 
 upload-pypi:
-	python setup.py sdist upload
-	python setup.py bdist_wheel upload
+	rm -v dist/*
+	python3 setup.py sdist bdist_wheel
+	python3 -m twine upload dist/*
 
 upload-fedorapeople: srpm
 	SRPMNAME=$$(ls rpmbuild/SRPMS); \
