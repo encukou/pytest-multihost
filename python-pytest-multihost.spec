@@ -12,7 +12,7 @@
 
 %global srcname pytest-multihost
 %global modulename pytest_multihost
-%global srcversion 1.1
+%global srcversion 1.1.1
 %global versionedname %{srcname}-%{srcversion}
 
 Name: python-%{srcname}
@@ -133,6 +133,9 @@ popd
 
 
 %changelog
+* Wed Apr 12 2017 Petr Viktorin <encukou@gmail.com> - 1.1.1-1
+- Upstream packaging changes
+
 * Thu Apr 22 2016 Petr Viktorin <encukou@gmail.com> - 1.1-1
 - Much improved support for Windows hosts (thanks to Niranjan MR)
 
