@@ -201,7 +201,7 @@ class BaseHost(object):
 
     def run_command(self, argv, set_env=True, stdin_text=None,
                     log_stdout=True, raiseonerr=True,
-                    cwd=None):
+                    cwd=None, bg=False):
         """Run the given command on this host
 
         Returns a Command instance. The command will have already run in the
@@ -218,6 +218,7 @@ class BaseHost(object):
         :param raiseonerr: If true, an exception will be raised if the command
                            does not exit with return code 0
         :param cwd: The working directory for the command
+        :param bg: If True, runs command in background
         """
         command = self.transport.start_shell(argv, log_stdout=log_stdout)
         # Set working directory
@@ -247,9 +248,10 @@ class BaseHost(object):
         if stdin_text:
             command.stdin.write(stdin_text)
         command.stdin.flush()
-
-        command.wait(raiseonerr=raiseonerr)
+        if not bg:
+            command.wait(raiseonerr=raiseonerr)
         return command
+
 
 
 class Host(BaseHost):

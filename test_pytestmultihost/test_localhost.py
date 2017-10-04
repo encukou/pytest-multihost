@@ -224,3 +224,11 @@ class TestLocalhost(object):
         host = multihost_badpassword.host
         with pytest.raises((AuthenticationException, RuntimeError)):
             echo = host.run_command(['echo', 'hello', 'world'])
+
+    def test_background(self, multihost):
+	host = multihost.host
+	run_nc = 'nc -l 12080 > /tmp/filename.out'
+	cmd = host.run_command(run_nc, bg=True, raiseonerr=False)
+	send_file = 'nc localhost 12080 < /root/anaconda-ks.cfg'
+	cmd = host.run_command(send_file)
+	assert cmd.returncode == 0
