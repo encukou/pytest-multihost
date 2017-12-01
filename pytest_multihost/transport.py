@@ -419,9 +419,6 @@ class SSHCallWrapper(object):
         assert mode == 'rb'
         return self.command.stderr
 
-    def shutdown_write(self):
-        self.command.stdin.close()
-
     def recv_exit_status(self):
         return self.command.wait()
 
@@ -445,12 +442,13 @@ class SSHCommand(Command):
         self.log.debug('RUN %s', argv)
 
         self._ssh.invoke_shell()
+
         def wrap_file(file, encoding):
             if encoding is None or sys.version_info < (3, 0):
                 return file
             else:
                 return io.TextIOWrapper(file, encoding=encoding)
-        stdin = self.stdin = wrap_file(self._ssh.makefile('wb'), 'utf-8')
+        self.stdin = wrap_file(self._ssh.makefile('wb'), 'utf-8')
         stdout = wrap_file(self._ssh.makefile('rb'), encoding)
         stderr = wrap_file(self._ssh.makefile_stderr('rb'), encoding)
 
@@ -460,7 +458,7 @@ class SSHCommand(Command):
             self._start_pipe_thread(self._stderr_lines, stderr, 'err', True)
 
     def _end_process(self):
-        self._ssh.shutdown_write()
+        self.stdin.close()
 
         while self.running_threads:
             self.running_threads.pop().join()
@@ -491,7 +489,10 @@ class SSHCommand(Command):
         return thread
 
 
-if not have_paramiko or os.environ.get('PYTESTMULTIHOST_SSH_TRANSPORT') == 'openssh':
+if (
+    not have_paramiko or
+    os.environ.get('PYTESTMULTIHOST_SSH_TRANSPORT') == 'openssh'
+):
     SSHTransport = OpenSSHTransport
 else:
     SSHTransport = ParamikoTransport
