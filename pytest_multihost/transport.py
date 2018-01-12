@@ -327,7 +327,8 @@ class OpenSSHTransport(Transport):
         command = self._run(['bash'], argv=argv, log_stdout=log_stdout)
         return command
 
-    def _run(self, command, log_stdout=True, argv=None, collect_output=True):
+    def _run(self, command, log_stdout=True, argv=None, collect_output=True,
+             encoding='utf-8'):
         """Run the given command on the remote host
 
         :param command: Command to run (appended to the common SSH invocation)
@@ -341,7 +342,8 @@ class OpenSSHTransport(Transport):
         ssh = SSHCallWrapper(self.ssh_argv + list(command))
         return SSHCommand(ssh, argv, logger_name, log_stdout=log_stdout,
                           collect_output=collect_output,
-                          get_logger=self.host.config.get_logger)
+                          get_logger=self.host.config.get_logger,
+                          encoding=encoding)
 
     def file_exists(self, path):
         self.log.info('STAT %s', path)
@@ -364,7 +366,7 @@ class OpenSSHTransport(Transport):
 
     def get_file_contents(self, filename, encoding=None):
         self.log.info('GET %s', filename)
-        cmd = self._run(['cat', filename], log_stdout=False)
+        cmd = self._run(['cat', filename], log_stdout=False, encoding=None)
         cmd.wait(raiseonerr=False)
         if cmd.returncode == 0:
             result = cmd.stdout_text
@@ -443,8 +445,10 @@ class SSHCommand(Command):
 
         self._ssh.invoke_shell()
 
+        self._is_binary = encoding is None or sys.version_info < (3, 0)
+
         def wrap_file(file, encoding):
-            if encoding is None or sys.version_info < (3, 0):
+            if self._is_binary:
                 return file
             else:
                 return io.TextIOWrapper(file, encoding=encoding)
@@ -463,8 +467,13 @@ class SSHCommand(Command):
         while self.running_threads:
             self.running_threads.pop().join()
 
-        self.stdout_text = ''.join(self._stdout_lines)
-        self.stderr_text = ''.join(self._stderr_lines)
+        if self._is_binary:
+            empty_sep = b''
+        else:
+            empty_sep = u''
+
+        self.stdout_text = empty_sep.join(self._stdout_lines)
+        self.stderr_text = empty_sep.join(self._stderr_lines)
         self.returncode = self._ssh.recv_exit_status()
         self._ssh.close()
 

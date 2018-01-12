@@ -233,6 +233,11 @@ class BaseHost(object):
         if self.command_prelude:
             command.stdin.write(self.command_prelude)
 
+        if stdin_text:
+            command.stdin.write("echo -e '")
+            command.stdin.write(stdin_text.replace("'", r"'\''"))
+            command.stdin.write("' | ")
+
         if isinstance(argv, basestring):
             # Run a shell command given as a string
             command.stdin.write('(')
@@ -244,9 +249,7 @@ class BaseHost(object):
                 command.stdin.write(shell_quote(arg))
                 command.stdin.write(' ')
 
-        command.stdin.write(';exit\n')
-        if stdin_text:
-            command.stdin.write(stdin_text)
+        command.stdin.write('\nexit\n')
         command.stdin.flush()
         if not bg:
             command.wait(raiseonerr=raiseonerr)
