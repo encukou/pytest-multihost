@@ -266,7 +266,7 @@ class TestLocalhost(object):
         with open(test_file_path, "rb") as f:
             assert f.read() == tee.stdout_bytes
 
-    def test_background(self, multihost, tmpdir):
+    def test_background_explicit_wait(self, multihost, tmpdir):
         host = multihost.host
 
         pipe_filename = str(tmpdir.join('test.pipe'))
@@ -278,6 +278,21 @@ class TestLocalhost(object):
         host.run_command('cat > ' + pipe_filename, stdin_text='expected value')
 
         cat.wait()
+        assert cat.stdout_text == 'expected value\n'
+        assert cat.returncode == 0
+
+    def test_background_context(self, multihost, tmpdir):
+        host = multihost.host
+
+        pipe_filename = str(tmpdir.join('test.pipe'))
+
+        with _first_command(host):
+            host.run_command(['mkfifo', pipe_filename])
+
+        with host.run_command(['cat', pipe_filename], bg=True) as cat:
+            host.run_command('cat > ' + pipe_filename,
+                             stdin_text='expected value')
+
         assert cat.stdout_text == 'expected value\n'
         assert cat.returncode == 0
 

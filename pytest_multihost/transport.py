@@ -164,6 +164,11 @@ class Command(object):
     decoded using the given ``encoding`` (default: ``'utf-8'``).
     These are decoded on-demand; do not access them if a command
     produces binary output.
+
+    A Command may be used as a context manager (in the ``with`` statement).
+    Exiting the context will automatically call ``wait()``.
+    This raises an exception if the exit code is not 0, unless the
+    ``raiseonerr`` attribute is set to false before exiting the context.
     """
     def __init__(self, argv, logger_name=None, log_stdout=True,
                  get_logger=None, encoding='utf-8'):
@@ -180,6 +185,7 @@ class Command(object):
         self.get_logger = get_logger
         self.log = get_logger(self.logger_name)
         self.encoding = encoding
+        self.raiseonerr = True
 
     stdout_text = _decoded_output_property('stdout')
     stderr_text = _decoded_output_property('stderr')
@@ -187,7 +193,7 @@ class Command(object):
     def wait(self, raiseonerr=True):
         """Wait for the remote process to exit
 
-        Raises an excption if the exit code is not 0, unless raiseonerr is
+        Raises an exception if the exit code is not 0, unless raiseonerr is
         true.
         """
         if self._done:
@@ -210,6 +216,12 @@ class Command(object):
         Called from wait()
         """
         raise NotImplementedError()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc_info):
+        self.wait(raiseonerr=self.raiseonerr)
 
 
 class ParamikoTransport(Transport):

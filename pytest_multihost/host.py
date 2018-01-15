@@ -218,7 +218,10 @@ class BaseHost(object):
         :param raiseonerr: If true, an exception will be raised if the command
                            does not exit with return code 0
         :param cwd: The working directory for the command
-        :param bg: If True, runs command in background
+        :param bg: If True, runs command in background.
+                   In this case, either the result should be used in a ``with``
+                   statement, or ``wait()`` should be called explicitly
+                   when the command is finished.
         :param encoding: Encoding for the resulting Command instance's
                          ``stdout_text`` and ``stderr_text``, and for
                          ``stdin_text``, ``argv``, etc. if they are not
@@ -263,8 +266,9 @@ class BaseHost(object):
 
         command.stdin.write(b'\nexit\n')
         command.stdin.flush()
+        command.raiseonerr = raiseonerr
         if not bg:
-            command.wait(raiseonerr=raiseonerr)
+            command.wait()
         return command
 
 
