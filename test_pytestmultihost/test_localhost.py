@@ -6,6 +6,7 @@ import getpass
 import pytest
 from subprocess import CalledProcessError
 import contextlib
+import sys
 import os
 
 import pytest_multihost
@@ -162,6 +163,38 @@ class TestLocalhost(object):
         with pytest.raises(IOError):
             host.get_file_contents(filename)
 
+    def test_get_put_file_contents_bytes(self, multihost, tmpdir):
+        host = multihost.host
+        filename = str(tmpdir.join('test-bytes.txt'))
+        testbytes = u'test \0 \N{WHITE SMILING FACE}'.encode('utf-8')
+        with _first_command(host):
+            host.put_file_contents(filename, testbytes, encoding=None)
+        result = host.get_file_contents(filename, encoding=None)
+        assert result == testbytes
+
+    @pytest.mark.parametrize('encoding', ('utf-8', 'utf-16'))
+    def test_put_file_contents_utf(self, multihost, tmpdir, encoding):
+        host = multihost.host
+        filename = str(tmpdir.join('test-{}.txt'.format(encoding)))
+        teststring = u'test \N{WHITE SMILING FACE}'
+        with _first_command(host):
+            host.put_file_contents(filename, teststring, encoding=encoding)
+        result = host.get_file_contents(filename, encoding=None)
+        assert result == teststring.encode(encoding)
+        with open(filename, 'rb') as f:
+            assert f.read() == teststring.encode(encoding)
+
+    @pytest.mark.parametrize('encoding', ('utf-8', 'utf-16'))
+    def test_get_file_contents_encoding(self, multihost, tmpdir, encoding):
+        host = multihost.host
+        filename = str(tmpdir.join('test-{}.txt'.format(encoding)))
+        teststring = u'test \N{WHITE SMILING FACE}'
+        with open(filename, 'wb') as f:
+            f.write(teststring.encode(encoding))
+        result = host.get_file_contents(filename, encoding=encoding)
+        assert result == teststring
+        assert type(result) == type(u'')
+
     def test_rename_file(self, multihost, tmpdir):
         host = multihost.host
         filename = str(tmpdir.join('test.txt'))
@@ -205,6 +238,8 @@ class TestLocalhost(object):
 
         stdin_text = '"test", test, "test", $test, '
         stdin_text += ''.join(chr(x) for x in range(32, 127))
+        stdin_text += r', \x66\0111\x00, '
+        stdin_text += ''.join('\\' + chr(x) for x in range(32, 127))
         tee = host.run_command(
             ["tee", test_file_path],
             stdin_text=stdin_text,
@@ -214,6 +249,22 @@ class TestLocalhost(object):
         assert tee.stdout_text == stdin_text + '\n'
         with open(test_file_path, "r") as f:
             assert f.read() == tee.stdout_text
+
+    def test_escaping_binary(self, multihost, tmpdir):
+        host = multihost.host
+        test_file_path = str(tmpdir.join('testfile.txt'))
+
+        stdin_bytes = b'"test", test, "test", $test, '
+        stdin_bytes += bytes(range(0, 256))
+        stdin_bytes += br', \x66\0111\x00'
+        tee = host.run_command(
+            ["tee", test_file_path],
+            stdin_text=stdin_bytes,
+            raiseonerr=False,
+        )
+        assert tee.stdout_bytes == stdin_bytes + b'\n'
+        with open(test_file_path, "rb") as f:
+            assert f.read() == tee.stdout_bytes
 
     def test_background(self, multihost, tmpdir):
         host = multihost.host

@@ -25,7 +25,7 @@ class BaseHost(object):
     See README for an overview of the core classes.
     """
     transport_class = transport.SSHTransport
-    command_prelude = ''
+    command_prelude = b''
 
     def __init__(self, domain, hostname, role, ip=None,
                  external_hostname=None, username=None, password=None,
@@ -190,9 +190,9 @@ class BaseHost(object):
         """Shortcut for transport.get_file_contents"""
         return self.transport.get_file_contents(filename, encoding=encoding)
 
-    def put_file_contents(self, filename, contents):
+    def put_file_contents(self, filename, contents, encoding='utf-8'):
         """Shortcut for transport.put_file_contents"""
-        self.transport.put_file_contents(filename, contents)
+        self.transport.put_file_contents(filename, contents, encoding=encoding)
 
     def collect_log(self, filename):
         """Call all registered log collectors on the given filename"""
@@ -201,7 +201,7 @@ class BaseHost(object):
 
     def run_command(self, argv, set_env=True, stdin_text=None,
                     log_stdout=True, raiseonerr=True,
-                    cwd=None, bg=False):
+                    cwd=None, bg=False, encoding='utf-8'):
         """Run the given command on this host
 
         Returns a Command instance. The command will have already run in the
@@ -219,47 +219,67 @@ class BaseHost(object):
                            does not exit with return code 0
         :param cwd: The working directory for the command
         :param bg: If True, runs command in background
+        :param encoding: Encoding for the resulting Command instance's
+                         ``stdout_text`` and ``stderr_text``, and for
+                         ``stdin_text``, ``argv``, etc. if they are not
+                         bytestrings already.
         """
-        command = self.transport.start_shell(argv, log_stdout=log_stdout)
+        def encode(string):
+            if not isinstance(string, bytes):
+                return string.encode(encoding)
+            else:
+                return string
+
+        command = self.transport.start_shell(argv, log_stdout=log_stdout,
+                                             encoding=encoding)
         # Set working directory
         if cwd is None:
             cwd = self.test_dir
-        command.stdin.write('cd %s\n' % shell_quote(cwd))
+        command.stdin.write(b'cd %s\n' % shell_quote(encode(cwd)))
 
         # Set the environment
         if set_env:
-            command.stdin.write('. %s\n' % shell_quote(self.env_sh_path))
+            quoted = shell_quote(encode(self.env_sh_path))
+            command.stdin.write(b'. %s\n' % quoted)
 
         if self.command_prelude:
-            command.stdin.write(self.command_prelude)
+            command.stdin.write(encode(self.command_prelude))
 
         if stdin_text:
-            command.stdin.write("echo -e '")
-            command.stdin.write(stdin_text.replace("'", r"'\''"))
-            command.stdin.write("' | ")
+            command.stdin.write(b"echo -e ")
+            command.stdin.write(_echo_quote(encode(stdin_text)))
+            command.stdin.write(b" | ")
 
         if isinstance(argv, basestring):
             # Run a shell command given as a string
-            command.stdin.write('(')
-            command.stdin.write(argv)
-            command.stdin.write(')')
+            command.stdin.write(b'(')
+            command.stdin.write(encode(argv))
+            command.stdin.write(b')')
         else:
             # Run a command given as a popen-style list (no shell expansion)
             for arg in argv:
-                command.stdin.write(shell_quote(arg))
-                command.stdin.write(' ')
+                command.stdin.write(shell_quote(encode(arg)))
+                command.stdin.write(b' ')
 
-        command.stdin.write('\nexit\n')
+        command.stdin.write(b'\nexit\n')
         command.stdin.flush()
         if not bg:
             command.wait(raiseonerr=raiseonerr)
         return command
 
 
+def _echo_quote(bytestring):
+    """Encode a bytestring for use with bash & "echo -e"
+    """
+    bytestring = bytestring.replace(b"\\", br"\\")
+    bytestring = bytestring.replace(b"\0", br"\x00")
+    bytestring = bytestring.replace(b"'", br"'\''")
+    return b"'" + bytestring + b"'"
+
 
 class Host(BaseHost):
     """A Unix host"""
-    command_prelude = 'set -e\n'
+    command_prelude = b'set -e\n'
 
 
 class WinHost(BaseHost):
