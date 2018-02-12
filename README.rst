@@ -172,6 +172,22 @@ $ py.test --multihost-config=/path/to/configfile.yaml
 To use YAML files, the PyYAML package is required. Without it only JSON files
 can be used.
 
+
+Encoding and bytes/text
+-----------------------
+
+When writing files or issuing commands, bytestrings are passed through
+unchanged, and text strings (``unicode`` in Python 2) are encoded using
+a configurable encoding (``utf-8`` by default).
+
+When reading files, bytestrings are returned by default,
+but an encoding can be given to get a test string.
+
+For command output, separate ``stdout_bytes`` and ``stdout_text`` attributes
+are provided.
+The latter uses a configurable encoding (``utf-8` by default).
+
+
 Contributing
 ------------
 

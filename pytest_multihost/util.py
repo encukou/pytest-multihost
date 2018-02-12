@@ -15,9 +15,9 @@ def check_config_dict_empty(dct, name):
                          (name, ', '.join(dct)))
 
 
-def shell_quote(string):
-    """Quotes a string for the Bash shell"""
-    return "'" + string.replace("'", "'\\''") + "'"
+def shell_quote(bytestring):
+    """Quotes a bytestring for the Bash shell"""
+    return b"'" + bytestring.replace(b"'", b"'\\''") + b"'"
 
 
 class TempDir(object):
