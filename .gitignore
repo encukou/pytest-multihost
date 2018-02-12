@@ -4,3 +4,5 @@
 /*.egg-info/
 /rpmbuild/
 /pytest-multihost-*.tar.gz
+/.pytest_cache/
+/.tox/
