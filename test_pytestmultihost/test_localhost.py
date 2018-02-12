@@ -297,6 +297,31 @@ class TestLocalhost(object):
         assert cat.returncode == 0
 
 
+    def test_background_raiseonerr_false(self, multihost, tmpdir):
+        host = multihost.host
+        with _first_command(host):
+            false = host.run_command(['false'], raiseonerr=False, bg=True)
+
+        assert false.returncode != 0
+
+
+    def test_background_raiseonerr_with(self, multihost, tmpdir):
+        host = multihost.host
+        with _first_command(host):
+            with pytest.raises(CalledProcessError):
+                with host.run_command(['false'], raiseonerr=True, bg=True):
+                    pass
+
+    def test_background_raiseonerr_wait(self, multihost, tmpdir):
+        host = multihost.host
+        with _first_command(host):
+            false = host.run_command(['false'], raiseonerr=True, bg=True)
+
+            with pytest.raises(CalledProcessError):
+                false.wait()
+
+
+
 @pytest.mark.needs_ssh
 class TestLocalhostBadConnection(object):
     def test_reset(self, multihost):

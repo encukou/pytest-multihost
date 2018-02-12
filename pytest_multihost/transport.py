@@ -30,6 +30,8 @@ except ImportError:
     have_paramiko = False
 
 
+DEFAULT = object()
+
 class Transport(object):
     """Mechanism for communicating with remote hosts
 
@@ -190,12 +192,18 @@ class Command(object):
     stdout_text = _decoded_output_property('stdout')
     stderr_text = _decoded_output_property('stderr')
 
-    def wait(self, raiseonerr=True):
+    def wait(self, raiseonerr=DEFAULT):
         """Wait for the remote process to exit
 
-        Raises an exception if the exit code is not 0, unless raiseonerr is
+        Raises an exception if the exit code is not 0, unless ``raiseonerr`` is
         true.
+
+        When ``raiseonerr`` is not specified as argument, the ``raiseonerr``
+        attribute is used.
         """
+        if raiseonerr is DEFAULT:
+            raiseonerr = self.raiseonerr
+
         if self._done:
             return self.returncode
 
