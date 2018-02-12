@@ -12,7 +12,7 @@
 
 %global srcname pytest-multihost
 %global modulename pytest_multihost
-%global srcversion 1.1.1
+%global srcversion 2.0
 %global versionedname %{srcname}-%{srcversion}
 
 Name: python-%{srcname}
@@ -133,6 +133,10 @@ popd
 
 
 %changelog
+* Wed Apr 12 2017 Petr Viktorin <encukou@gmail.com> - 2.0-1
+- Add support to run commands in background
+- Fix several issues around quoting, background processes, and encoding
+
 * Wed Apr 12 2017 Petr Viktorin <encukou@gmail.com> - 1.1.1-1
 - Upstream packaging changes
 
