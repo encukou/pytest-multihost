@@ -249,7 +249,7 @@ class BaseHost(object):
             command.stdin.write(encode(self.command_prelude))
 
         if stdin_text:
-            command.stdin.write(b"echo -e ")
+            command.stdin.write(b"echo -en ")
             command.stdin.write(_echo_quote(encode(stdin_text)))
             command.stdin.write(b" | ")
 
@@ -273,7 +273,7 @@ class BaseHost(object):
 
 
 def _echo_quote(bytestring):
-    """Encode a bytestring for use with bash & "echo -e"
+    """Encode a bytestring for use with bash & "echo -en"
     """
     bytestring = bytestring.replace(b"\\", br"\\")
     bytestring = bytestring.replace(b"\0", br"\x00")

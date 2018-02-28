@@ -246,7 +246,7 @@ class TestLocalhost(object):
             raiseonerr=False,
         )
         print(tee.stderr_text)
-        assert tee.stdout_text == stdin_text + '\n'
+        assert tee.stdout_text == stdin_text
         with open(test_file_path, "r") as f:
             assert f.read() == tee.stdout_text
 
@@ -262,9 +262,19 @@ class TestLocalhost(object):
             stdin_text=stdin_bytes,
             raiseonerr=False,
         )
-        assert tee.stdout_bytes == stdin_bytes + b'\n'
+        assert tee.stdout_bytes == stdin_bytes
         with open(test_file_path, "rb") as f:
             assert f.read() == tee.stdout_bytes
+
+    def test_piping_input(self, multihost, tmpdir):
+        host = multihost.host
+        b64 = host.run_command(['base64'], stdin_text='test')
+        assert b64.stdout_text == 'dGVzdA==' + '\n'
+
+    def test_piping_input_with_newline(self, multihost, tmpdir):
+        host = multihost.host
+        b64 = host.run_command(['base64'], stdin_text='test\n')
+        assert b64.stdout_text == 'dGVzdAo=' + '\n'
 
     def test_background_explicit_wait(self, multihost, tmpdir):
         host = multihost.host
@@ -278,7 +288,7 @@ class TestLocalhost(object):
         host.run_command('cat > ' + pipe_filename, stdin_text='expected value')
 
         cat.wait()
-        assert cat.stdout_text == 'expected value\n'
+        assert cat.stdout_text == 'expected value'
         assert cat.returncode == 0
 
     def test_background_context(self, multihost, tmpdir):
@@ -293,7 +303,7 @@ class TestLocalhost(object):
             host.run_command('cat > ' + pipe_filename,
                              stdin_text='expected value')
 
-        assert cat.stdout_text == 'expected value\n'
+        assert cat.stdout_text == 'expected value'
         assert cat.returncode == 0
 
 
