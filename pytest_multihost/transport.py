@@ -141,7 +141,6 @@ class _decoded_output_property(object):
             return self
         else:
             bytestring = getattr(instance, self.name + '_bytes')
-            print(bytestring, instance.encoding)
             decoded = bytestring.decode(instance.encoding)
             setattr(instance, self.name + '_text', decoded)
             return decoded
