@@ -11,7 +11,7 @@ with io.open('README.rst', 'rt', encoding='utf-8') as f:
 
 setup_args = dict(
     name = "pytest-multihost",
-    version = "2.0",
+    version = "3.0",
     description = "Utility for writing multi-host tests for pytest",
     long_description = readme_contents,
     url = "https://pagure.io/python-pytest-multihost",

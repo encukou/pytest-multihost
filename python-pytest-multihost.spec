@@ -12,7 +12,7 @@
 
 %global srcname pytest-multihost
 %global modulename pytest_multihost
-%global srcversion 2.0
+%global srcversion 3.0
 %global versionedname %{srcname}-%{srcversion}
 
 Name: python-%{srcname}
@@ -133,6 +133,10 @@ popd
 
 
 %changelog
+* Fri Mar 02 2018 Petr Viktorin <encukou@gmail.com> - 3.0-1
+- Do not add extra newlines to stdin contents
+- Remove forgotten debug print
+
 * Wed Apr 12 2017 Petr Viktorin <encukou@gmail.com> - 2.0-1
 - Add support to run commands in background
 - Fix several issues around quoting, background processes, and encoding
